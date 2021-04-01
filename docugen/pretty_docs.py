@@ -1,12 +1,7 @@
 """A module for converting parsed doc content into markdown pages.
 
 The adjacent `parser` module creates `PageInfo` objects, containing all data
-necessary to document an element of the TensorFlow API.
-
-This module contains one public function, which handels the conversion of these
-`PageInfo` objects into a markdown string:
-
-    md_page = build_md_page(page_info)
+necessary to document an element of a Python API.
 """
 
 import textwrap
@@ -40,9 +35,6 @@ def build_md_page(page_info: parser.PageInfo) -> str:
 
     if isinstance(page_info, parser.ModulePageInfo):
         return _build_module_page(page_info)
-
-    if isinstance(page_info, parser.TypeAliasPageInfo):
-        return _build_type_alias_page(page_info)
 
     raise ValueError(f"Unknown Page Info Type: {type(page_info)}")
 
@@ -81,64 +73,21 @@ def _build_function_page(page_info: parser.FunctionPageInfo) -> str:
     """
     parts = [f'# {page_info.full_name.split(".")[-1]}\n\n']
 
-    parts.append("<!-- Insert buttons and diff -->\n")
-
     parts.append(_top_source_link(page_info.defined_in))
     parts.append("\n\n")
 
     parts.append(page_info.doc.brief + "\n\n")
 
-    parts.append(_build_collapsable_aliases(page_info.aliases))
-
     if page_info.signature is not None:
         parts.append(_build_signature(page_info, obj_name=page_info.full_name))
         parts.append("\n\n")
 
-    # This will be replaced by the "Used in: <notebooks>" whenever it is run.
-    parts.append('<!-- Placeholder for "Used in" -->\n')
-
     for item in page_info.doc.docstring_parts:
         parts.append(_format_docstring(item, table_title_template="{title}"))
-
-    parts.append(_build_compatibility(page_info.doc.compatibility))
 
     custom_content = doc_controls.get_custom_page_content(page_info.py_object)
     if custom_content is not None:
         parts.append(custom_content)
-
-    return "".join(parts)
-
-
-def _build_type_alias_page(page_info: parser.TypeAliasPageInfo) -> str:
-    """Constructs a markdown page given a `TypeAliasPageInfo` object.
-
-    Args:
-      page_info: A `TypeAliasPageInfo` object containing information that's used
-        to create a type alias page.
-
-    Returns:
-      The type alias's markdown page.
-    """
-
-    parts = [f'# {page_info.full_name.split(".")[-1]}\n\n']
-
-    parts.append("<!-- Insert buttons and diff -->\n")
-
-    parts.append("This symbol is a **type alias**.\n\n")
-    parts.append(page_info.doc.brief)
-    parts.append("\n\n")
-
-    if page_info.signature is not None:
-        parts.append("#### Source:\n\n")
-        parts.append(
-            _build_signature(page_info, obj_name=page_info.short_name, type_alias=True)
-        )
-        parts.append("\n\n")
-
-    parts.append('<!-- Placeholder for "Used in" -->\n')
-
-    for item in page_info.doc.docstring_parts:
-        parts.append(_format_docstring(item, table_title_template="{title}"))
 
     return "".join(parts)
 
@@ -271,10 +220,6 @@ def _build_class_page(page_info: parser.ClassPageInfo) -> str:
     # Add the full_name of the symbol to the page.
     parts = [f'# {page_info.full_name.split(".")[-1]}\n\n']
 
-    # This is used as a marker to initiate the diffing process later down in the
-    # pipeline.
-    parts.append("<!-- Insert buttons and diff -->\n")
-
     # Add the github button.
     parts.append(_top_source_link(page_info.defined_in))
     parts.append("\n\n")
@@ -294,9 +239,6 @@ def _build_class_page(page_info: parser.ClassPageInfo) -> str:
         )
         parts.append("\n\n")
 
-    # Build the aliases section and keep it collapses by default.
-    parts.append(_build_collapsable_aliases(page_info.aliases))
-
     # Split the methods into constructor and other methods.
     methods = split_methods(page_info.methods)
 
@@ -309,14 +251,9 @@ def _build_class_page(page_info: parser.ClassPageInfo) -> str:
         )
         parts.append("\n\n")
 
-    # This will be replaced by the "Used in: <notebooks>" later in the pipeline.
-    parts.append('<!-- Placeholder for "Used in" -->\n')
-
     # Merge the class and constructor docstring.
     parts.extend(merge_class_and_constructor_docstring(page_info, methods.constructor))
 
-    # Add the compatibility section to the page.
-    parts.append(_build_compatibility(page_info.doc.compatibility))
     parts.append("\n\n")
 
     custom_content = doc_controls.get_custom_page_content(page_info.py_object)
@@ -442,7 +379,6 @@ def _build_method_section(method_info, heading_level=3):
     for item in method_info.doc.docstring_parts:
         parts.append(_format_docstring(item, table_title_template=None))
 
-    parts.append(_build_compatibility(method_info.doc.compatibility))
     parts.append("\n\n")
     return "".join(parts)
 
@@ -483,13 +419,9 @@ def _build_module_page(page_info: parser.ModulePageInfo) -> str:
     # First line of the docstring i.e. a brief introduction about the symbol.
     parts.append(page_info.doc.brief + "\n\n")
 
-    parts.append(_build_collapsable_aliases(page_info.aliases))
-
     # All lines in the docstring, expect the brief introduction.
     for item in page_info.doc.docstring_parts:
         parts.append(_format_docstring(item, table_title_template=None))
-
-    parts.append(_build_compatibility(page_info.doc.compatibility))
 
     parts.append("\n\n")
 
@@ -521,14 +453,6 @@ def _build_module_page(page_info: parser.ModulePageInfo) -> str:
             _build_module_parts(
                 module_parts=page_info.functions,
                 template="[`{short_name}(...)`]({url})",
-            )
-        )
-
-    if page_info.type_alias:
-        parts.append("## Type Aliases\n\n")
-        parts.extend(
-            _build_module_parts(
-                module_parts=page_info.type_alias, template="[`{short_name}`]({url})"
             )
         )
 
@@ -607,20 +531,6 @@ def _build_signature(
     return "".join(parts)
 
 
-def _build_compatibility(compatibility):
-    """Return the compatibility section as an md string."""
-    parts = []
-    sorted_keys = sorted(compatibility.keys())
-    for key in sorted_keys:
-
-        value = compatibility[key]
-        # Dedent so that it does not trigger markdown code formatting.
-        value = textwrap.dedent(value)
-        parts.append(f"\n\n#### {key.title()} Compatibility\n{value}\n")
-
-    return "".join(parts)
-
-
 TABLE_HEADER = (
     # '<table class="tfo-notebook-buttons tfo-api nocontent" align="left">'
     ""
@@ -670,60 +580,3 @@ def _small_source_link(location):
         return ""
 
     return template.format(url=location.url)
-
-
-def _build_collapsable_aliases(aliases: List[str]) -> str:
-    """Returns the top "Aliases" line."""
-
-    def join_aliases(aliases: List[str]) -> str:
-        return ", ".join("`{}`".format(name) for name in aliases)
-
-    collapsable_template = textwrap.dedent(
-        """\
-    <section class="expandable">
-      <h4 class="showalways">View aliases</h4>
-      <p>{content}</p>
-    </section>
-    """
-    )
-
-    main_alias_template = textwrap.dedent(
-        """
-    <b>Main aliases</b>
-    <p>{content}</p>
-    """
-    )
-
-    compat_alias_template = textwrap.dedent(
-        """
-    <b>Compat aliases for migration</b>
-    <p>See
-    <a href="https://www.tensorflow.org/guide/migrate">Migration guide</a> for
-    more details.</p>
-    <p>{content}</p>
-    """
-    )
-
-    main_aliases = []
-    compat_aliases = []
-
-    for alias in aliases:
-        if "__" in alias:
-            continue
-        elif "compat.v" in alias:
-            compat_aliases.append(alias)
-        else:
-            main_aliases.append(alias)
-
-    alias_content = ""
-    if main_aliases:
-        alias_content += main_alias_template.format(content=join_aliases(main_aliases))
-    if compat_aliases:
-        alias_content += compat_alias_template.format(
-            content=join_aliases(compat_aliases)
-        )
-
-    if alias_content:
-        return collapsable_template.format(content=alias_content) + "\n"
-
-    return alias_content

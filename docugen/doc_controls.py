@@ -1,9 +1,9 @@
 """Documentation control decorators."""
-from typing import Callable, Iterable, TypeVar
+from typing import Iterable, TypeVar
 
 T = TypeVar("T")
 
-_DEPRECATED = "_tf_docs_deprecated"
+_DEPRECATED = "_docs_deprecated"
 
 
 def set_deprecated(obj: T) -> T:
@@ -16,7 +16,7 @@ def is_deprecated(obj) -> bool:
     return hasattr(obj, _DEPRECATED)
 
 
-_NO_SEARCH_HINTS = "_tf_docs_no_search_hints"
+_NO_SEARCH_HINTS = "_docs_no_search_hints"
 
 
 def hide_from_search(obj: T) -> T:
@@ -42,7 +42,7 @@ def should_hide_from_search(obj) -> bool:
     return hasattr(obj, _NO_SEARCH_HINTS)
 
 
-_CUSTOM_PAGE_CONTENT = "_tf_docs_custom_page_content"
+_CUSTOM_PAGE_CONTENT = "_docs_custom_page_content"
 
 
 def set_custom_page_content(obj, content):
@@ -55,7 +55,7 @@ def get_custom_page_content(obj):
     return getattr(obj, _CUSTOM_PAGE_CONTENT, None)
 
 
-_DO_NOT_DOC = "_tf_docs_do_not_document"
+_DO_NOT_DOC = "_docs_do_not_document"
 
 
 def do_not_generate_docs(obj: T) -> T:
@@ -136,7 +136,7 @@ def do_not_generate_docs(obj: T) -> T:
     return obj
 
 
-_DO_NOT_DOC_INHERITABLE = "_tf_docs_do_not_doc_inheritable"
+_DO_NOT_DOC_INHERITABLE = "_docs_do_not_doc_inheritable"
 
 
 def do_not_doc_inheritable(obj: T) -> T:
@@ -199,7 +199,7 @@ def do_not_doc_inheritable(obj: T) -> T:
     return obj
 
 
-_FOR_SUBCLASS_IMPLEMENTERS = "_tf_docs_tools_for_subclass_implementers"
+_FOR_SUBCLASS_IMPLEMENTERS = "_docs_tools_for_subclass_implementers"
 
 
 def for_subclass_implementers(obj: T) -> T:
@@ -279,7 +279,7 @@ def for_subclass_implementers(obj: T) -> T:
 
 do_not_doc_in_subclasses = for_subclass_implementers
 
-_DOC_PRIVATE = "_tf_docs_doc_private"
+_DOC_PRIVATE = "_docs_doc_private"
 
 
 def doc_private(obj: T) -> T:
@@ -315,7 +315,7 @@ def should_doc_private(obj) -> bool:
     return hasattr(obj, _DOC_PRIVATE)
 
 
-_DOC_IN_CURRENT_AND_SUBCLASSES = "_tf_docs_doc_in_current_and_subclasses"
+_DOC_IN_CURRENT_AND_SUBCLASSES = "_docs_doc_in_current_and_subclasses"
 
 
 def doc_in_current_and_subclasses(obj: T) -> T:

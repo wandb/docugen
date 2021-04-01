@@ -63,7 +63,9 @@ def markdown_render(command: str, output_dir: str, output_file: str) -> str:
         options = ""
 
     if "Commands:" in parsed_dict.keys():
-        subcommands, subcommand_list = get_subcommands_markdown(command, parsed_dict["Commands:"])
+        subcommands, subcommand_list = get_subcommands_markdown(
+            command, parsed_dict["Commands:"]
+        )
     else:
         subcommands, subcommand_list = "", []
 
@@ -158,8 +160,7 @@ def parse_help(command: str) -> Tuple[str, str, str]:
 
 
 def get_options_markdown(options):
-    """Formats the options of a command as a markdown table.
-    """
+    """Formats the options of a command as a markdown table."""
     options_md = ""
 
     for element in options:
@@ -176,8 +177,7 @@ def get_options_markdown(options):
 
 
 def get_subcommands_markdown(command, subcommands):
-    """Formats the subcommands of a command as a markdown table.
-    """
+    """Formats the subcommands of a command as a markdown table."""
     subcommands_md, subcommand_list = "", []
 
     for element in subcommands:

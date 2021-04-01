@@ -1,10 +1,10 @@
 import os
 
 from docugen import doc_controls
-from docugen import generate_lib
+from docugen import generate
 import wandb
 
-DIRNAME = "library"
+DIRNAME = "ref"
 
 # fmt: off
 # which datatypes are we documenting?
@@ -47,12 +47,11 @@ def build_docs(name_pair, output_dir, code_url_prefix):
             docstrings of the public API.
     """
 
-    doc_generator = generate_lib.DocGenerator(
+    doc_generator = generate.DocGenerator(
         root_title="W&B",
         py_modules=[name_pair],
         base_dir=os.path.dirname(wandb.__file__),
         code_url_prefix=code_url_prefix,
-        site_path="",
     )
 
     doc_generator.build(output_dir)
@@ -77,17 +76,6 @@ def build_library_docs(git_hash, code_url_prefix, output_dir):
 
     wandb.__all__ = doclist
     wandb.__doc__ = """\n"""
-
-    # is this necessary?
-
-    # try:
-    #     doc_controls.do_not_generate_docs(wandb.Run.__exit__)
-    # except AttributeError:
-    #     pass
-    # try:
-    #     doc_controls.do_not_generate_docs(wandb.Run.__enter__)
-    # except AttributeError:
-    #     pass
 
     build_docs(
         name_pair=(DIRNAME, wandb),

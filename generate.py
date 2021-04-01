@@ -7,6 +7,7 @@ python generate.py --help
 """
 import argparse
 import os
+from pathlib import Path
 
 import cli
 import library
@@ -24,18 +25,17 @@ def main(args):
     # Create the library docs
     library.build(git_hash, code_url_prefix, output_dir)
 
-    # convert generate_lib output to GitBook format
+    # convert .build output to GitBook format
     rename_to_readme(output_dir)
     library_dir = os.path.join(output_dir, DIRNAME)
-    filter_files(library_dir, ["all_symbols.md", "_api_cache.json"])
     clean_names(library_dir)
 
     # Create the CLI docs
     cli.build(library_dir)
 
     # fill the SUMMARY.md with generated doc files,
-    #  based on template in _SUMMARY.md
-    populate_summary(DIRNAME, template_file, output_dir=output_dir)
+    #  based on provided template.
+    populate_summary(library_dir, template_file, output_dir=output_dir)
 
 
 def populate_summary(
@@ -79,6 +79,7 @@ def walk_autodoc(folder: str) -> str:
     for path, dirs, files in os.walk(folder):
         dirs.sort()
         files.sort()
+        path = str(Path(path).relative_to(Path(folder).parent))
         is_subdir = "/" in path
         if is_subdir:
             components = path.split("/")
@@ -137,6 +138,7 @@ def clean_names(directory):
 
 
 def filter_files(directory, files_to_remove):
+    """Remove any unwanted files."""
     for root, _, file_names in os.walk(directory):
         for file_name in file_names:
             if file_name in files_to_remove:
@@ -171,14 +173,14 @@ def get_args():
         type=str,
         default="wandb",
         help="Folder within GitHUb repo where wandb client code is located. "
-             + "Defaults to wandb.",
+        + "Defaults to wandb.",
     )
     parser.add_argument(
         "--output_dir",
         type=str,
         default=os.getcwd(),
-        help="Folder into which to place folder library/ containing results. "
-             + "Defaults to current directory.",
+        help=f"Folder into which to place folder {DIRNAME}/ containing results. "
+        + "Defaults to current directory.",
     )
     return parser.parse_args()
 
