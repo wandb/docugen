@@ -87,7 +87,7 @@ def walk_autodoc(folder: str) -> str:
             name = components[-1]
         else:
             name = path
-        autodoc_markdowns.append(" " * indent + f"* [{name}]({path}/README.md)")
+        autodoc_markdowns.append("  " * indent + f"* [{name}]({path}/README.md)")
 
         autodoc_markdowns.extend(add_files(files, path, indent))
 
@@ -98,7 +98,7 @@ def walk_autodoc(folder: str) -> str:
 
 def add_files(files: list, root: str, indent: int) -> list:
     file_markdowns = []
-    indentation = " " * indent
+    indentation = "  " * indent
     for file_name in files:
         if file_name == "README.md" or not file_name.endswith(".md"):
             continue
