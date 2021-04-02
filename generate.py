@@ -116,11 +116,11 @@ def add_files(files: list, root: str, indent: int) -> list:
         if file_name == "README.md" or not file_name.endswith(".md"):
             continue
         short_name = file_name.split(".")[0]
-        source = infer_source(root)
+        source, source_prefix = infer_source(root)
         if short_name.title() in source:
             short_name = short_name.title()
 
-        file_markdown = indentation + f"  * [{short_name}]({root}/{file_name})"
+        file_markdown = indentation + f"  * [{source_prefix + short_name}]({root}/{file_name})"
         file_markdowns.append(file_markdown)
 
     return file_markdowns
@@ -130,11 +130,11 @@ def infer_source(path):
     if path == DIRNAME:
         return []
     elif "data-types" in path:
-        return library.WANDB_DATATYPES
+        return library.WANDB_DATATYPES, "wandb.data_types."
     elif "public-api" in path:
-        return library.WANDB_API
+        return library.WANDB_API, "wandb.apis.public."
     elif "python" in path:
-        return library.WANDB_DOCLIST
+        return library.WANDB_DOCLIST, "wandb."
     else:
         return []
 
