@@ -8,6 +8,7 @@ python generate.py --help
 import argparse
 import os
 from pathlib import Path
+import shutil
 
 import cli
 import library
@@ -19,6 +20,7 @@ DIRNAMES_TO_TITLES = {
     "cli": "Command Line Interface",
     "data-types": "Data Types",
     "public-api": "Import & Export API",
+    "python": "Python Library",
 }
 
 
@@ -29,20 +31,22 @@ def main(args):
 
     code_url_prefix = "/".join([args.repo, "tree", f"{git_hash}", args.prefix])
 
+    ref_dir = os.path.join(output_dir, DIRNAME)
+    shutil.rmtree(ref_dir)
+
     # Create the library docs
     library.build(git_hash, code_url_prefix, output_dir)
 
     # convert .build output to GitBook format
-    rename_to_readme(output_dir)
-    library_dir = os.path.join(output_dir, DIRNAME)
-    clean_names(library_dir)
+    rename_to_readme(ref_dir)
+    clean_names(ref_dir)
 
     # Create the CLI docs
-    cli.build(library_dir)
+    cli.build(ref_dir)
 
     # fill the SUMMARY.md with generated doc files,
     #  based on provided template.
-    populate_summary(library_dir, template_file, output_dir=output_dir)
+    populate_summary(ref_dir, template_file, output_dir=output_dir)
 
 
 def populate_summary(
@@ -90,7 +94,7 @@ def walk_autodoc(folder: str) -> str:
         is_subdir = "/" in path
         if is_subdir:
             components = path.split("/")
-            indent = len(components)
+            indent = len(components) - 1
             name = components[-1]
         else:
             name = path
@@ -123,11 +127,13 @@ def add_files(files: list, root: str, indent: int) -> list:
 
 def infer_source(path):
     if path == DIRNAME:
-        return library.WANDB_DOCLIST
+        return []
     elif "data-types" in path:
         return library.WANDB_DATATYPES
     elif "public-api" in path:
         return library.WANDB_API
+    elif "python" in path:
+        return library.WANDB_DOCLIST
     else:
         return []
 
