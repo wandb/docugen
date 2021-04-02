@@ -26,6 +26,7 @@ DIRNAMES_TO_TITLES = {
 
 def main(args):
     git_hash = args.git_hash
+    assert len(git_hash) == 40, f"git hash must have all 40 characters, was {git_hash}"
     output_dir = args.output_dir
     template_file = args.template_file
 
