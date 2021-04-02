@@ -13,7 +13,7 @@ import shutil
 import cli
 import library
 
-DIRNAME = library.DIRNAME  # directory name for autodocs
+DIRNAME = library.DIRNAME  # directory name for docugens
 
 DIRNAMES_TO_TITLES = {
     DIRNAME: "Reference Docs",
@@ -54,10 +54,10 @@ def populate_summary(
     docgen_folder: str, template_file: str = "_SUMMARY.md", output_dir: str = "."
 ) -> None:
     """Populates the output file with generated file names
-    by filling in the template_file at the {autodoc} location.
+    by filling in the template_file at the {docugen} location.
 
     GitBook uses a `SUMMARY.md` file to determine which
-    files to show in the sidebar. When using autodoc,
+    files to show in the sidebar. When using docugen,
     we must generate this partly programmatically.
 
     Args:
@@ -72,21 +72,21 @@ def populate_summary(
     with open(template_file, "r") as f:
         doc_structure = f.read()
 
-    autodoc_markdown = walk_autodoc(docgen_folder)
+    docugen_markdown = walk_docugen(docgen_folder)
 
-    doc_structure = doc_structure.format(autodoc=autodoc_markdown)
+    doc_structure = doc_structure.format(docugen=docugen_markdown)
 
     with open(os.path.join(output_dir, "SUMMARY.md"), "w") as f:
         f.write(doc_structure)
 
 
-def walk_autodoc(folder: str) -> str:
+def walk_docugen(folder: str) -> str:
     """Walks a folder, pulls out all of the markdown files,
     formats their names into markdown strings with appropriate links
     and formatting for a GitBook SUMMARY.md, then returns that block of markdown.
     """
 
-    autodoc_markdowns = []
+    docugen_markdowns = []
     indent = 0
     for path, dirs, files in os.walk(folder):
         dirs.sort()
@@ -100,13 +100,13 @@ def walk_autodoc(folder: str) -> str:
         else:
             name = path
         title = convert_name(name)
-        autodoc_markdowns.append("  " * indent + f"* [{title}]({path}/README.md)")
+        docugen_markdowns.append("  " * indent + f"* [{title}]({path}/README.md)")
 
-        autodoc_markdowns.extend(add_files(files, path, indent))
+        docugen_markdowns.extend(add_files(files, path, indent))
 
-    autodoc_markdown = "\n".join(autodoc_markdowns)
+    docugen_markdown = "\n".join(docugen_markdowns)
 
-    return autodoc_markdown
+    return docugen_markdown
 
 
 def add_files(files: list, root: str, indent: int) -> list:
@@ -198,8 +198,8 @@ def get_args():
         "--template_file",
         type=str,
         default="_SUMMARY.md",
-        help="Template markdown file with {autodoc} where filenames to be written. "
-        + "Defaults to _SUMMARY.md",
+        help="Template markdown file with {docugen} where filenames to be written. "
+        + "Defaults to ./_SUMMARY.md",
     )
     parser.add_argument(
         "--repo",
@@ -211,7 +211,7 @@ def get_args():
         "--prefix",
         type=str,
         default="wandb",
-        help="Folder within GitHUb repo where wandb client code is located. "
+        help="Folder within GitHub repo where wandb client code is located. "
         + "Defaults to wandb.",
     )
     parser.add_argument(

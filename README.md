@@ -39,6 +39,9 @@ This is based on a provided `--template_file`
 When generating a new version of the docs,
 you'll want to create a new template based on
 the most recent version of the GitBook repo's `SUMMARY.md`
+To create a template, just remove the lines of `SUMMARY.md`
+corresponding to automatically-generated
+markdown files and put in their place one line reading `{docugen}`.
 
 ### Example Usage
 
