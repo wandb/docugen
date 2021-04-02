@@ -17,6 +17,9 @@ WANDB_API = ["Api", "Projects", "Project", "Runs", "Run",
              "Sweep", "Files", "File", "Artifact",]
 # fmt: on
 
+# later, we'll decide which parts of the sdk we're documenting
+WANDB_DOCLIST = []
+
 
 def build(git_hash, code_url_prefix, output_dir):
     """Builds docs in three stages: library, data types, and API.
@@ -73,6 +76,8 @@ def build_library_docs(git_hash, code_url_prefix, output_dir):
     #  but maybe it should be?
     wandb.Run = wandb.wandb_sdk.wandb_run.Run
     doclist.extend(["Artifact", "Run"])
+
+    WANDB_DOCLIST.extend(doclist)
 
     wandb.__all__ = doclist
     wandb.__doc__ = """\n"""

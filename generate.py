@@ -14,6 +14,13 @@ import library
 
 DIRNAME = library.DIRNAME  # directory name for autodocs
 
+DIRNAMES_TO_TITLES = {
+    DIRNAME: "Reference Docs",
+    "cli": "Command Line Interface",
+    "data-types": "Data Types",
+    "public-api": "Import & Export API",
+}
+
 
 def main(args):
     git_hash = args.git_hash
@@ -87,7 +94,8 @@ def walk_autodoc(folder: str) -> str:
             name = components[-1]
         else:
             name = path
-        autodoc_markdowns.append("  " * indent + f"* [{name}]({path}/README.md)")
+        title = convert_name(name)
+        autodoc_markdowns.append("  " * indent + f"* [{title}]({path}/README.md)")
 
         autodoc_markdowns.extend(add_files(files, path, indent))
 
@@ -103,10 +111,34 @@ def add_files(files: list, root: str, indent: int) -> list:
         if file_name == "README.md" or not file_name.endswith(".md"):
             continue
         short_name = file_name.split(".")[0]
+        source = infer_source(root)
+        if short_name.title() in source:
+            short_name = short_name.title()
+
         file_markdown = indentation + f"  * [{short_name}]({root}/{file_name})"
         file_markdowns.append(file_markdown)
 
     return file_markdowns
+
+
+def infer_source(path):
+    if path == DIRNAME:
+        return library.WANDB_DOCLIST
+    elif "data-types" in path:
+        return library.WANDB_DATATYPES
+    elif "public-api" in path:
+        return library.WANDB_API
+    else:
+        return []
+
+
+def convert_name(name):
+    if name in DIRNAMES_TO_TITLES.keys():
+        name = DIRNAMES_TO_TITLES[name]
+
+    name = name.replace("-", " ")
+
+    return name
 
 
 def rename_to_readme(directory):
