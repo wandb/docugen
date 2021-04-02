@@ -73,10 +73,15 @@ def build_library_docs(git_hash, code_url_prefix, output_dir):
     #  but maybe should not be?
     doclist = [elem for elem in doclist if elem not in WANDB_API]
 
+    # add back in Artifact, which is also an object in the API
+    doclist.append("Artifact")
+
     # the "Run" object is not included at the top level,
     #  but maybe it should be?
+    #  instead, there's a lower-case .run at the top level
+    #  also needs to be added back, since there's a Run in the API
     wandb.Run = wandb.wandb_sdk.wandb_run.Run
-    doclist.extend(["Artifact", "Run"])
+    doclist.extend(["Run"])
 
     WANDB_DOCLIST.extend(doclist)
 
