@@ -21,6 +21,7 @@ DIRNAMES_TO_TITLES = {
     "data-types": "Data Types",
     "public-api": "Import & Export API",
     "python": "Python Library",
+    "java": r"Java Library \[Beta\]"
 }
 
 
@@ -33,7 +34,10 @@ def main(args):
     code_url_prefix = "/".join([args.repo, "tree", f"{git_hash}", args.prefix])
 
     ref_dir = os.path.join(output_dir, DIRNAME)
-    shutil.rmtree(ref_dir, ignore_errors=True)
+    for dirname in DIRNAMES_TO_TITLES.keys():
+        if dirname == "java":
+            continue
+        shutil.rmtree(os.path.join(ref_dir, dirname), ignore_errors=True)
 
     # Create the library docs
     library.build(git_hash, code_url_prefix, output_dir)
@@ -128,15 +132,17 @@ def add_files(files: list, root: str, indent: int) -> list:
 
 def infer_source(path):
     if path == DIRNAME:
-        return []
+        return [], ""
     elif "data-types" in path:
         return library.WANDB_DATATYPES, "wandb.data_types."
     elif "public-api" in path:
         return library.WANDB_API, "wandb.apis.public."
     elif "python" in path:
         return library.WANDB_DOCLIST, "wandb."
+    elif "java" in path:
+        return [], ""
     else:
-        return []
+        return [], ""
 
 
 def convert_name(name):

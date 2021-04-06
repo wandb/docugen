@@ -31,6 +31,8 @@ Make sure to use the entire hash, not just a prefix -- it's used to create URLs.
 The files in the `ref` folder are the generated markdown.
 Use the `--output_dir` option to change where this folder is saved;
 by default it is in the working directory.
+If the `output_dir` already contains a folder named `ref`,
+any contents inside the `cli` or `python` directory will be over-written.
 2. A `SUMMARY.md` file for creating a
 [GitBook sidebar](https://docs.gitbook.com/integrations/github/content-configuration#summary)
 that indexes the automatically-generated docs.
