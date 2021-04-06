@@ -33,7 +33,7 @@ def main(args):
     code_url_prefix = "/".join([args.repo, "tree", f"{git_hash}", args.prefix])
 
     ref_dir = os.path.join(output_dir, DIRNAME)
-    shutil.rmtree(ref_dir)
+    shutil.rmtree(ref_dir, ignore_errors=True)
 
     # Create the library docs
     library.build(git_hash, code_url_prefix, output_dir)
