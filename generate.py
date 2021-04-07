@@ -93,6 +93,8 @@ def walk_docugen(folder: str) -> str:
     docugen_markdowns = []
     indent = 0
     for path, dirs, files in os.walk(folder):
+        if "java" in path:
+            continue
         dirs.sort()
         files.sort()
         path = str(Path(path).relative_to(Path(folder).parent))
