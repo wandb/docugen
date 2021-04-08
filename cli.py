@@ -3,12 +3,11 @@ import re
 import subprocess
 from typing import Tuple
 
-PATTERN = re.compile(r"(.*?\w) +(.*)")
+PATTERN = re.compile(r"(.*?)  +(.*)")
 # (           - Start of capture
 #  .*?        - 0 or more repetitions of any character except a new line (non-greedy)
-#   \w        - Not a word character
-#      )      - End of capture
-#       +     - 1 or more repetitions of space
+#     )       - End of capture
+#        +    - 2 or more repetitions of space
 #        (    - Start of capture
 #         .*  - 0 of more repetitions of any character except a new line
 #           ) - End of group
@@ -142,8 +141,9 @@ def parse_help(command: str) -> Tuple[str, str, str]:
         if keyword is None:
             summary.append(line)
         else:
-            # PATTERN help with option and value
-            # eg --version Show the version
+            # PATTERN helps with option and value
+            # eg. --version Shows the version
+            # will be captured like
             # [("--version","Show the version")]
             extract = PATTERN.findall(line)
             if extract:
@@ -164,10 +164,10 @@ def get_options_markdown(options):
     options_md = ""
 
     for element in options:
-        description = parse_description(element)
-
+        arg = parse_description(element)
+        desc = element[1]
         # concatenate all the options
-        options_md += f"""|{element[0]}|{description}|\n"""
+        options_md += f"""|{arg}|{desc}|\n"""
 
     options_md = (
         """**Options**\n| **Options** | **Description** |\n|:--|:--|:--|\n"""
@@ -184,9 +184,10 @@ def get_subcommands_markdown(command, subcommands):
         subcommand_list.append(
             f"{command} {element[0]}"
         )  # Keeping a list of all the nested counts
-        description = parse_description(element)
+        arg = parse_description(element)
+        desc = element[1]
         # concatenate all the options
-        subcommands_md += f"""|{element[0]}|{description}|\n"""
+        subcommands_md += f"""|{arg}|{desc}|\n"""
     subcommands_md = (
         """**Commands**\n| **Commands** | **Description** |\n|:--|:--|:--|\n"""
         + subcommands_md
@@ -198,12 +199,13 @@ def get_subcommands_markdown(command, subcommands):
 def parse_description(element):
 
     markdown = (
-        " ".join(list(filter(lambda x: x, element[1].split(" ")[1:])))
-        if element[1]
-        .split(" ")[0]
-        .isupper()  # to check for types in help page eg. --version INTEGER the version
-        else element[1]
-    )
+        " ".
+        join(
+            list(
+                filter(lambda x: "" if x.isupper() else x, element[0].split(" "))
+                )
+            )
+        )
 
     return markdown
 
