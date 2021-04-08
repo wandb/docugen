@@ -78,7 +78,7 @@ def populate_summary(
 
     docugen_markdown = walk_docugen(docgen_folder)
 
-    doc_structure = doc_structure.format(docugen=docugen_markdown)
+    doc_structure = doc_structure.format(autodoc=docugen_markdown)
 
     with open(os.path.join(output_dir, "SUMMARY.md"), "w") as f:
         f.write(doc_structure)
