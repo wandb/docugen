@@ -131,6 +131,8 @@ def parse_help(command: str) -> Tuple[str, str, str]:
     summary = []
     keyword = None  # initializing keyword with None
     parsed_dict = {}  # will hold Options and Commands
+    
+    help_page = pre_process(help_page)
 
     for line in help_page.split("\n"):
         line = line.strip()
@@ -157,6 +159,36 @@ def parse_help(command: str) -> Tuple[str, str, str]:
         usage = summary[0]
         summary = "\n".join(summary[1:])
         return usage, summary, parsed_dict
+
+
+def pre_process(help_page: str) -> str:
+    """
+    This method is used to transform
+    the help_page into a good format
+    for the parser to parse it better.
+
+    Args:
+        help_page: The whole help page of a command
+    
+    Returns:
+        str: The transformed help page.
+    """
+    re_space = re.compile(r"(^\s+)") # To compute the starting space
+    page_splits = help_page.split("\n")
+    # if page_splits[0] == 'Usage: wandb docker [OPTIONS] [DOCKER_RUN_ARGS]... [DOCKER_IMAGE]':
+    for idx, line in enumerate(page_splits):
+        white_space = re_space.findall(line)
+        if (white_space) and (len(white_space[0]) > 2):
+            # Can be either a wrapped description
+            # or a new description all together.
+            if len(page_splits) >= idx+1 and page_splits[idx+1] == "":
+                # wrapped description
+                page_splits[idx-1]=page_splits[idx-1]+" "+page_splits.pop(idx).strip()
+                page_splits.pop(idx)
+            else:
+                # new description
+                page_splits[idx-1]=page_splits[idx-1]+"   "+page_splits.pop(idx).strip()
+    return "\n".join(page_splits)
 
 
 def get_options_markdown(options):
