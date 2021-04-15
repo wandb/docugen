@@ -3,12 +3,11 @@ import re
 import subprocess
 from typing import Tuple
 
-PATTERN = re.compile(r"(.*?\w) +(.*)")
+PATTERN = re.compile(r"(.*?)  +(.*)")
 # (           - Start of capture
 #  .*?        - 0 or more repetitions of any character except a new line (non-greedy)
-#   \w        - Not a word character
-#      )      - End of capture
-#       +     - 1 or more repetitions of space
+#     )       - End of capture
+#        +    - 2 or more repetitions of space
 #        (    - Start of capture
 #         .*  - 0 of more repetitions of any character except a new line
 #           ) - End of group
@@ -132,6 +131,8 @@ def parse_help(command: str) -> Tuple[str, str, str]:
     summary = []
     keyword = None  # initializing keyword with None
     parsed_dict = {}  # will hold Options and Commands
+    
+    help_page = pre_process(help_page)
 
     for line in help_page.split("\n"):
         line = line.strip()
@@ -142,8 +143,9 @@ def parse_help(command: str) -> Tuple[str, str, str]:
         if keyword is None:
             summary.append(line)
         else:
-            # PATTERN help with option and value
-            # eg --version Show the version
+            # PATTERN helps with option and value
+            # eg. --version Shows the version
+            # will be captured like
             # [("--version","Show the version")]
             extract = PATTERN.findall(line)
             if extract:
@@ -159,15 +161,45 @@ def parse_help(command: str) -> Tuple[str, str, str]:
         return usage, summary, parsed_dict
 
 
+def pre_process(help_page: str) -> str:
+    """
+    This method is used to transform
+    the help_page into a good format
+    for the parser to parse it better.
+
+    Args:
+        help_page: The whole help page of a command
+    
+    Returns:
+        str: The transformed help page.
+    """
+    re_space = re.compile(r"(^\s+)") # To compute the starting space
+    page_splits = help_page.split("\n")
+    # if page_splits[0] == 'Usage: wandb docker [OPTIONS] [DOCKER_RUN_ARGS]... [DOCKER_IMAGE]':
+    for idx, line in enumerate(page_splits):
+        white_space = re_space.findall(line)
+        if (white_space) and (len(white_space[0]) > 2):
+            # Can be either a wrapped description
+            # or a new description all together.
+            if len(page_splits) >= idx+1 and page_splits[idx+1] == "":
+                # wrapped description
+                page_splits[idx-1]=page_splits[idx-1]+" "+page_splits.pop(idx).strip()
+                page_splits.pop(idx)
+            else:
+                # new description
+                page_splits[idx-1]=page_splits[idx-1]+"   "+page_splits.pop(idx).strip()
+    return "\n".join(page_splits)
+
+
 def get_options_markdown(options):
     """Formats the options of a command as a markdown table."""
     options_md = ""
 
     for element in options:
-        description = parse_description(element)
-
+        arg = parse_description(element)
+        desc = element[1]
         # concatenate all the options
-        options_md += f"""|{element[0]}|{description}|\n"""
+        options_md += f"""|{arg}|{desc}|\n"""
 
     options_md = (
         """**Options**\n| **Options** | **Description** |\n|:--|:--|:--|\n"""
@@ -184,9 +216,10 @@ def get_subcommands_markdown(command, subcommands):
         subcommand_list.append(
             f"{command} {element[0]}"
         )  # Keeping a list of all the nested counts
-        description = parse_description(element)
+        arg = parse_description(element)
+        desc = element[1]
         # concatenate all the options
-        subcommands_md += f"""|{element[0]}|{description}|\n"""
+        subcommands_md += f"""|{arg}|{desc}|\n"""
     subcommands_md = (
         """**Commands**\n| **Commands** | **Description** |\n|:--|:--|:--|\n"""
         + subcommands_md
@@ -198,12 +231,13 @@ def get_subcommands_markdown(command, subcommands):
 def parse_description(element):
 
     markdown = (
-        " ".join(list(filter(lambda x: x, element[1].split(" ")[1:])))
-        if element[1]
-        .split(" ")[0]
-        .isupper()  # to check for types in help page eg. --version INTEGER the version
-        else element[1]
-    )
+        " ".
+        join(
+            list(
+                filter(lambda x: "" if x.isupper() else x, element[0].split(" "))
+                )
+            )
+        )
 
     return markdown
 
