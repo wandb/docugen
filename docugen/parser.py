@@ -798,14 +798,13 @@ def _parse_md_docstring(
 
     if get_obj_type(py_object) is ObjType.OTHER:
         raw_docstring = _get_other_member_doc(
-            obj=py_object, parser_config=parser_config,
+            obj=py_object,
+            parser_config=parser_config,
         )
     else:
         raw_docstring = _get_raw_docstring(py_object)
 
-    raw_docstring = parser_config.reference_resolver.replace_backticks(
-        raw_docstring
-    )
+    raw_docstring = parser_config.reference_resolver.replace_backticks(raw_docstring)
 
     docstring = raw_docstring
 
@@ -1021,7 +1020,7 @@ class FormatArguments(object):
         if match:
             for internal_name, public_name in self._INTERNAL_NAMES.items():
                 if match.group(0).startswith(internal_name):
-                    return public_name + default_text[len(internal_name):]
+                    return public_name + default_text[len(internal_name) :]
         return default_text
 
     def format_return(self, return_anno: Any) -> str:
@@ -1545,7 +1544,10 @@ class ClassPageInfo(PageInfo):
             if base_full_name is None:
                 continue
             base_doc = _parse_md_docstring(
-                base, relative_path, self.full_name, parser_config,
+                base,
+                relative_path,
+                self.full_name,
+                parser_config,
             )
             base_url = parser_config.reference_resolver.reference_to_url(
                 base_full_name, relative_path
@@ -1726,7 +1728,10 @@ class ClassPageInfo(PageInfo):
                 continue
 
             child_doc = _parse_md_docstring(
-                child, relative_path, self.full_name, parser_config,
+                child,
+                relative_path,
+                self.full_name,
+                parser_config,
             )
 
             child_url = parser_config.reference_resolver.reference_to_url(
@@ -1934,7 +1939,10 @@ class ModulePageInfo(PageInfo):
             member = parser_config.py_name_to_object(member_full_name)
 
             member_doc = _parse_md_docstring(
-                member, relative_path, self.full_name, parser_config,
+                member,
+                relative_path,
+                self.full_name,
+                parser_config,
             )
 
             url = parser_config.reference_resolver.reference_to_url(
@@ -1983,15 +1991,18 @@ def docs_for_object(
     obj_type = get_obj_type(py_object)
     if obj_type is ObjType.CLASS:
         page_info = ClassPageInfo(
-            full_name=main_name, py_object=py_object,
+            full_name=main_name,
+            py_object=py_object,
         )
     elif obj_type is ObjType.CALLABLE:
         page_info = FunctionPageInfo(
-            full_name=main_name, py_object=py_object,
+            full_name=main_name,
+            py_object=py_object,
         )
     elif obj_type is ObjType.MODULE:
         page_info = ModulePageInfo(
-            full_name=main_name, py_object=py_object,
+            full_name=main_name,
+            py_object=py_object,
         )
     else:
         raise RuntimeError("Cannot make docs for object {full_name}: {py_object!r}")

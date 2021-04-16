@@ -21,7 +21,7 @@ DIRNAMES_TO_TITLES = {
     "data-types": "Data Types",
     "public-api": "Import & Export API",
     "python": "Python Library",
-    "java": r"Java Library \[Beta\]"
+    "java": r"Java Library \[Beta\]",
 }
 
 
@@ -48,6 +48,9 @@ def main(args):
 
     # Create the CLI docs
     cli.build(ref_dir)
+
+    # Change Folder with single README to file.md
+    single_folder_format(ref_dir)
 
     # fill the SUMMARY.md with generated doc files,
     #  based on provided template.
@@ -126,7 +129,9 @@ def add_files(files: list, root: str, indent: int) -> list:
         if short_name.title() in source:
             short_name = short_name.title()
 
-        file_markdown = indentation + f"  * [{source_prefix + short_name}]({root}/{file_name})"
+        file_markdown = (
+            indentation + f"  * [{source_prefix + short_name}]({root}/{file_name})"
+        )
         file_markdowns.append(file_markdown)
 
     return file_markdowns
@@ -182,6 +187,33 @@ def clean_names(directory):
                 os.path.join(f"{root}", f"{name}"),
                 os.path.join(f"{root}", f"{short_name}"),
             )
+
+
+def single_folder_format(directory):
+    """
+    Convert single file folders to single files.
+
+    This is done to combat the huge differences generated
+    by GitBook.
+    eg.
+    - folder
+        - README.md
+
+    changes to
+    - folder.md
+    """
+    for root, folders, file_names in os.walk(directory):
+        number_of_folders = len(folders)
+        number_of_files = len(file_names)
+        if number_of_folders == 0 and number_of_files == 1:
+            if file_names[0] == "README.md":
+                cwd = os.path.split(root)[-1]
+                parent_root = os.path.abspath(os.path.join(root, ".."))
+                os.rename(
+                os.path.join(f"{root}", "README.md"),
+                os.path.join(f"{parent_root}", f"{cwd}.md"),
+                )
+                os.rmdir(root)
 
 
 def filter_files(directory, files_to_remove):

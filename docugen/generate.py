@@ -205,7 +205,8 @@ class DocGenerator:
         # Make output_dir.
         if not output_dir.is_absolute():
             raise ValueError(
-                "'output_dir' must be an absolute path.\n" f"    output_dir='{output_dir}'"
+                "'output_dir' must be an absolute path.\n"
+                f"    output_dir='{output_dir}'"
             )
         output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -226,7 +227,9 @@ class DocGenerator:
             # Generate docs for `py_object`, resolving references.
             try:
                 page_info = parser.docs_for_object(
-                    full_name, py_object, parser_config,
+                    full_name,
+                    py_object,
+                    parser_config,
                 )
             except:  # noqa
                 raise ValueError(f"Failed to generate docs for symbol: `{full_name}`")
@@ -288,7 +291,9 @@ class DocGenerator:
             raise ValueError("only pass one [('name',module)] pair in py_modules")
         short_name, py_module = py_modules[0]
 
-        api_filter = public_api.PublicAPIFilter(base_dir=base_dir, private_map=private_map)
+        api_filter = public_api.PublicAPIFilter(
+            base_dir=base_dir, private_map=private_map
+        )
 
         accumulator = visitor_cls()
 
