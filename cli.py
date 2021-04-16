@@ -13,7 +13,7 @@ PATTERN = re.compile(r"(.*?)  +(.*)")
 #           ) - End of group
 
 KEYWORDS = ["Options:", "Commands:"]
-TEMPLATE = "# {}\n\n{}\n\n{}\n\n{}\n\n{}"
+TEMPLATE = "# {}\n\n{}\n\n{}\n{}\n{}"
 
 
 def build(output_dir: str = None):
@@ -51,7 +51,8 @@ def markdown_render(command: str, output_dir: str, output_file: str) -> str:
     if usage:
         # Document usage
         usage = usage.split(":")
-        usage = f"**Usage**\n\n`{usage[1]}`"
+        md_usage = usage[1].strip()
+        usage = f"**Usage**\n\n`{md_usage}`"
     if summary:
         # Document summary
         summary = f"**Summary**\n{summary}"
@@ -199,10 +200,10 @@ def get_options_markdown(options):
         arg = parse_description(element)
         desc = element[1]
         # concatenate all the options
-        options_md += f"""|{arg}|{desc}|\n"""
+        options_md += f"""| {arg} | {desc} |\n"""
 
     options_md = (
-        """**Options**\n| **Options** | **Description** |\n|:--|:--|:--|\n"""
+        """**Options**\n\n| **Options** | **Description** |\n| :--- | :--- |\n"""
         + options_md
     )
     return options_md
@@ -219,9 +220,9 @@ def get_subcommands_markdown(command, subcommands):
         arg = parse_description(element)
         desc = element[1]
         # concatenate all the options
-        subcommands_md += f"""|{arg}|{desc}|\n"""
+        subcommands_md += f"""| {arg} | {desc} |\n"""
     subcommands_md = (
-        """**Commands**\n| **Commands** | **Description** |\n|:--|:--|:--|\n"""
+        """**Commands**\n\n| **Commands** | **Description** |\n| :--- | :--- |\n"""
         + subcommands_md
     )
 
