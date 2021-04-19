@@ -24,6 +24,8 @@ DIRNAMES_TO_TITLES = {
     "java": r"Java Library \[Beta\]"
 }
 
+SKIPS = ["app", "java"]
+
 
 def main(args):
     git_hash = args.git_hash
@@ -35,7 +37,7 @@ def main(args):
 
     ref_dir = os.path.join(output_dir, DIRNAME)
     for dirname in DIRNAMES_TO_TITLES.keys():
-        if dirname == "java":
+        if dirname in SKIPS:
             continue
         shutil.rmtree(os.path.join(ref_dir, dirname), ignore_errors=True)
 
@@ -93,7 +95,7 @@ def walk_docugen(folder: str) -> str:
     docugen_markdowns = []
     indent = 0
     for path, dirs, files in os.walk(folder):
-        if "java" in path:
+        if any("ref/" + skip in path for skip in SKIPS):
             continue
         dirs.sort()
         files.sort()
@@ -141,7 +143,7 @@ def infer_source(path):
         return library.WANDB_API, "wandb.apis.public."
     elif "python" in path:
         return library.WANDB_DOCLIST, "wandb."
-    elif "java" in path:
+    elif "java" or "app" in path:
         return [], ""
     else:
         return [], ""
