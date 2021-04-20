@@ -16,7 +16,7 @@ import library
 DIRNAME = library.DIRNAME  # directory name for docugens
 
 DIRNAMES_TO_TITLES = {
-    DIRNAME: "Reference Docs",
+    DIRNAME: "Reference",
     "cli": "Command Line Interface",
     "data-types": "Data Types",
     "public-api": "Import & Export API",
