@@ -183,11 +183,15 @@ def pre_process(help_page: str) -> str:
             # or a new description all together.
             if len(page_splits) >= idx + 1 and page_splits[idx + 1] == "":
                 # wrapped description
-                page_splits[idx - 1] = page_splits[idx - 1] + " " + page_splits.pop(idx).strip()
+                page_splits[idx - 1] = (
+                    page_splits[idx - 1] + " " + page_splits.pop(idx).strip()
+                )
                 page_splits.pop(idx)
             else:
                 # new description
-                page_splits[idx - 1] = page_splits[idx - 1] + "   " + page_splits.pop(idx).strip()
+                page_splits[idx - 1] = (
+                    page_splits[idx - 1] + "   " + page_splits.pop(idx).strip()
+                )
     return "\n".join(page_splits)
 
 
@@ -230,14 +234,9 @@ def get_subcommands_markdown(command, subcommands):
 
 def parse_description(element):
 
-    markdown = (
-        " ".
-        join(
-            list(
-                filter(lambda x: "" if x.isupper() else x, element[0].split(" "))
-                )
-            )
-        )
+    markdown = " ".join(
+        list(filter(lambda x: "" if x.isupper() else x, element[0].split(" ")))
+    )
 
     return markdown
 
