@@ -164,34 +164,65 @@ def parse_help(command: str) -> Tuple[str, str, str]:
 
 def pre_process(help_page: str) -> str:
     """
-    This method is used to transform
-    the help_page into a good format
-    for the parser to parse it better.
+    Transforms the help page of a command to better suit the needs of the parser.
+
+    The wandb CLI is made with the help of [click](https://click.palletsprojects.com/).
+    We have noticed the problem of line wrapping with this tool.
+    eg.
+    ```bash
+    --sync-tensorboard / --no-sync-tensorboard
+                                  Stream tfevent files to wandb.
+    --nvidia / --no-nvidia    Use the nvidia runtime, defaults to nvidia if
+                              nvidia-docker is present
+    ```
+    We find two types of overflow problems:
+    - new description: Due to the overflow of the option `--sync-tensorboard / --no-sync-tensorboard`
+        the description `Stream tfevent files to wandb.` is sent to the next line.
+    - wrapped description: Due to the overflow of the description `Use the nvidia runtime, defaults to nvidia if`
+        the rest of the description is wrapped to the next line.
+
+    This breaks our parser that looks for lines with `option   description`.
+    With this function we transform these lines into the suitable format that our parser
+    expects.
+    ```bash
+    --sync-tensorboard / --no-sync-tensorboard   Stream tfevent files to wandb.
+    --nvidia / --no-nvidia   Use the nvidia runtime, defaults to nvidia if nvidia-docker is present.
+    ```
 
     Args:
-        help_page: The whole help page of a command
+        help_page: The help page of a command gathered by `parse_help()`
 
     Returns:
         str: The transformed help page.
     """
-    re_space = re.compile(r"(^\s+)")  # To compute the starting space
+    # The help page has a lot of components
+    # We need to sample the `option  description` lines, which starts
+    # with white spaces.
+    re_space = re.compile(r"(^\s+)")  # Regex to capture starting white spaces.
+
+    # Split the lines and iterate
     page_splits = help_page.split("\n")
+    num_of_lines = len(page_splits)
     for idx, line in enumerate(page_splits):
+        # Capture the starting white spaces of the line
         white_space = re_space.findall(line)
-        if (white_space) and (len(white_space[0]) > 2):
-            # Can be either a wrapped description
-            # or a new description all together.
-            if len(page_splits) >= idx + 1 and page_splits[idx + 1] == "":
+        num_white_space = len(white_space) if white_space else 0
+        if num_white_space > 2:
+            # Can be either
+            # - wrapped description
+            # - new description
+            if num_of_lines >= idx + 1 and page_splits[idx + 1] == "":
                 # wrapped description
-                page_splits[idx - 1] = (
-                    page_splits[idx - 1] + " " + page_splits.pop(idx).strip()
-                )
+                desc_1 = page_splits[idx - 1]
+                desc_2 = page_splits.pop(idx).strip()
+                page_splits[idx - 1] = desc_1 + " " + desc_2
+                # Remove the empty line
                 page_splits.pop(idx)
             else:
                 # new description
-                page_splits[idx - 1] = (
-                    page_splits[idx - 1] + "   " + page_splits.pop(idx).strip()
-                )
+                option = page_splits[idx - 1]
+                description = page_splits.pop(idx).strip()
+                page_splits[idx - 1] = option + "   " + description
     return "\n".join(page_splits)
 
 
@@ -233,7 +264,17 @@ def get_subcommands_markdown(command, subcommands):
 
 
 def parse_description(element):
+    """
+    There are options in the help page where the defualt datatype
+    is displayed.
+    ```bash
+    --shell TEXT              The shell to start the container with
+    ```
+    Here the datatype is TEXT.
 
+    With this function we strip the datatype off the line and return
+    the formatted line.
+    """
     markdown = " ".join(
         list(filter(lambda x: "" if x.isupper() else x, element[0].split(" ")))
     )
