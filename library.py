@@ -83,6 +83,10 @@ def build_library_docs(git_hash, code_url_prefix, output_dir):
     wandb.Run = wandb.wandb_sdk.wandb_run.Run
     doclist.extend(["Run"])
 
+    # for now, remove .join and document .finish
+    doclist.extend(["finish"])
+    doclist = [elem for elem in doclist if elem != "join"]
+
     WANDB_DOCLIST.extend(doclist)
 
     wandb.__all__ = doclist
