@@ -587,9 +587,9 @@ class TitleBlock(object):
     def __init__(
         self,
         *,
-        title: Optional[str] = None,
         text: str,
         items: Iterable[Tuple[str, str]],
+        title: Optional[str] = None,
     ):
         self.title = title
         self.text = text
@@ -620,8 +620,10 @@ class TitleBlock(object):
 
         items = []
         for name, description in self.items:
-            if not description:
-                description = ""
+            name = name.strip() if name else ""
+            description = description.strip() if description else ""
+            if description=="":
+                continue
             else:
                 description = description.strip()
             item_table = ITEMS_TEMPLATE.format(
