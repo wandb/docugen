@@ -18,9 +18,9 @@ based on the
 
 ### Steps
 
-1. Run `pip install --upgrade git+git://github.com/wandb/client.git@<git_hash>`
+1. Run `pip install --upgrade git+git://github.com/wandb/client.git@<commit_id>`
 to install the version of`wandb` you wish to document.
-2. Run `python generate.py --git_hash <git_hash>` to create the documentation.
+2. Run `python generate.py --commit_id <commit_id>` to create the documentation.
 Make sure to use the entire hash, not just a prefix -- it's used to create URLs.
 3. Move the generated documentation into a local copy of
 [the repository for the GitBook](https://www.github.com/).

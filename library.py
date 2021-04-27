@@ -22,7 +22,7 @@ WANDB_API = ["Api", "Projects", "Project", "Runs", "Run",
 WANDB_DOCLIST = []
 
 
-def build(git_hash, code_url_prefix, output_dir):
+def build(commit_id, code_url_prefix, output_dir):
     """Builds docs in three stages: library, data types, and API.
 
     For now, this involves a lot of special-casing.
@@ -34,9 +34,9 @@ def build(git_hash, code_url_prefix, output_dir):
     #  attribute of the wandb module, populating it with
     #  the relevant objects and then generating docs.
 
-    build_library_docs(git_hash, code_url_prefix, output_dir)
-    build_datatype_docs(git_hash, code_url_prefix, output_dir)
-    build_api_docs(git_hash, code_url_prefix, output_dir)
+    build_library_docs(commit_id, code_url_prefix, output_dir)
+    build_datatype_docs(commit_id, code_url_prefix, output_dir)
+    build_api_docs(commit_id, code_url_prefix, output_dir)
 
 
 def build_docs(name_pair, output_dir, code_url_prefix):
@@ -61,7 +61,7 @@ def build_docs(name_pair, output_dir, code_url_prefix):
     doc_generator.build(output_dir)
 
 
-def build_library_docs(git_hash, code_url_prefix, output_dir):
+def build_library_docs(commit_id, code_url_prefix, output_dir):
     # we start from the current __all__ attribute
     doclist = wandb.__all__
 
@@ -107,7 +107,7 @@ def build_library_docs(git_hash, code_url_prefix, output_dir):
     )
 
 
-def build_datatype_docs(git_hash, code_url_prefix, output_dir):
+def build_datatype_docs(commit_id, code_url_prefix, output_dir):
 
     wandb.__all__ = WANDB_DATATYPES
     wandb.__doc__ = """\n"""
@@ -119,7 +119,7 @@ def build_datatype_docs(git_hash, code_url_prefix, output_dir):
     )
 
 
-def build_api_docs(git_hash, code_url_prefix, output_dir):
+def build_api_docs(commit_id, code_url_prefix, output_dir):
 
     # this should be made cleaner
     #  by either using the __all__ of the api
