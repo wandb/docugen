@@ -87,6 +87,14 @@ def build_library_docs(git_hash, code_url_prefix, output_dir):
     doclist.extend(["finish"])
     doclist = [elem for elem in doclist if elem != "join"]
 
+    # remove .setup as it is not public
+    doclist = [elem for elem in doclist if elem != "setup"]
+
+    # adding `wandb.watch` to the doclist. The idea behind
+    # adding watch to the parent docs and not integration
+    # is that watch does not have a submodule namespace.
+    doclist.extend(["watch"])
+
     WANDB_DOCLIST.extend(doclist)
 
     wandb.__all__ = doclist
