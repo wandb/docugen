@@ -130,6 +130,7 @@ def add_files(files: list, root: str, indent: int) -> list:
         source, source_prefix = infer_source(root)
         if short_name.title() in source:
             short_name = short_name.title()
+        short_name = convert_name(short_name)
 
         file_markdown = (
             indentation + f"  * [{source_prefix + short_name}]({root}/{file_name})"
@@ -212,8 +213,8 @@ def single_folder_format(directory):
                 cwd = os.path.split(root)[-1]
                 parent_root = os.path.abspath(os.path.join(root, ".."))
                 os.rename(
-                os.path.join(f"{root}", "README.md"),
-                os.path.join(f"{parent_root}", f"{cwd}.md"),
+                    os.path.join(f"{root}", "README.md"),
+                    os.path.join(f"{parent_root}", f"{cwd}.md"),
                 )
                 os.rmdir(root)
 
