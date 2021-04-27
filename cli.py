@@ -206,7 +206,7 @@ def pre_process(help_page: str) -> str:
     for idx, line in enumerate(page_splits):
         # Capture the starting white spaces of the line
         white_space = re_space.findall(line)
-        num_white_space = len(white_space) if white_space else 0
+        num_white_space = len(white_space[0]) if white_space else 0
         if num_white_space > 2:
             # Can be either
             # - wrapped description

@@ -13,6 +13,8 @@ import shutil
 import cli
 import library
 
+import wandb  # to get the wandb version
+
 DIRNAME = library.DIRNAME  # directory name for docugens
 
 DIRNAMES_TO_TITLES = {
@@ -28,12 +30,23 @@ SKIPS = ["app", "java"]
 
 
 def main(args):
-    git_hash = args.git_hash
-    assert len(git_hash) == 40, f"git hash must have all 40 characters, was {git_hash}"
+    commit_id = args.commit_id
+    if "." in commit_id:
+        # commit_id is a version
+        wandb_version = f"v{wandb.__version__}"
+        assert (
+            wandb_version == commit_id
+        ), f"git version does not match wandb version {wandb_version}"
+    else:
+        # commit_id is a git hash
+        commit_id_len = len(commit_id)
+        assert (
+            commit_id_len == 40
+        ), f"git hash must have all 40 characters, was {commit_id}"
     output_dir = args.output_dir
     template_file = args.template_file
 
-    code_url_prefix = "/".join([args.repo, "tree", f"{git_hash}", args.prefix])
+    code_url_prefix = "/".join([args.repo, "tree", f"{commit_id}", args.prefix])
 
     ref_dir = os.path.join(output_dir, DIRNAME)
     for dirname in DIRNAMES_TO_TITLES.keys():
@@ -42,7 +55,7 @@ def main(args):
         shutil.rmtree(os.path.join(ref_dir, dirname), ignore_errors=True)
 
     # Create the library docs
-    library.build(git_hash, code_url_prefix, output_dir)
+    library.build(commit_id, code_url_prefix, output_dir)
 
     # convert .build output to GitBook format
     rename_to_readme(ref_dir)
@@ -231,10 +244,14 @@ def get_args():
     parser = argparse.ArgumentParser(
         description="Generate documentation for the wandb library and CLI."
     )
+    # The commit_id can be the complete git hash
+    # or can be the tag for the version of code.
+    # eg. HASH = https://github.com/wandb/client/tree/c129c32964aca6a8509d98a0cc3c9bc46f2d8a4c
+    # eg. TAG = https://github.com/wandb/client/tree/v0.10.27
     parser.add_argument(
-        "--git_hash",
+        "--commit_id",
         type=str,
-        help="Hash for the git commit to base the docs on. "
+        help="Hash/Tag for the git commit to base the docs on. "
         + "Ensures that the source code is properly linked.",
     )
     parser.add_argument(

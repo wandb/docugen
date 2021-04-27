@@ -50,7 +50,7 @@ markdown files and put in their place one line reading `{docugen}`.
 ```python
 python generate.py \
   --template_file path/to/_SUMMARY.md \
-  --git_hash 7bbc4a4eac8eeb2bf37a62ce519e0de61c67eadf \
+  --commit_id 7bbc4a4eac8eeb2bf37a62ce519e0de61c67eadf \
   --output_dir path/to/gitbook
 ```
 
