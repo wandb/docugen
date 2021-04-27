@@ -237,7 +237,7 @@ def get_options_markdown(options):
         options_md += f"""| {arg} | {desc} |\n"""
 
     options_md = (
-        """**Options**\n\n| **Options** | **Description** |\n| :--- | :--- |\n"""
+        """**Options**\n\n| **Option** | **Description** |\n| :--- | :--- |\n"""
         + options_md
     )
     return options_md
@@ -256,7 +256,7 @@ def get_subcommands_markdown(command, subcommands):
         # concatenate all the options
         subcommands_md += f"""| {arg} | {desc} |\n"""
     subcommands_md = (
-        """**Commands**\n\n| **Commands** | **Description** |\n| :--- | :--- |\n"""
+        """**Commands**\n\n| **Command** | **Description** |\n| :--- | :--- |\n"""
         + subcommands_md
     )
 
