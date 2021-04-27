@@ -622,7 +622,7 @@ class TitleBlock(object):
         for name, description in self.items:
             name = name.strip() if name else ""
             description = description.strip() if description else ""
-            if description=="":
+            if description == "":
                 continue
             else:
                 description = description.strip()
@@ -1022,7 +1022,7 @@ class FormatArguments(object):
         if match:
             for internal_name, public_name in self._INTERNAL_NAMES.items():
                 if match.group(0).startswith(internal_name):
-                    return public_name + default_text[len(internal_name) :]
+                    return public_name + default_text[len(internal_name):]
         return default_text
 
     def format_return(self, return_anno: Any) -> str:
