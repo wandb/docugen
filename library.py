@@ -16,6 +16,11 @@ WANDB_DATATYPES = ["Graph", "Image", "Plotly", "Video",
 # which parts of the API are we documenting?
 WANDB_API = ["Api", "Projects", "Project", "Runs", "Run",
              "Sweep", "Files", "File", "Artifact",]
+
+# which parts of the integration are we documenting?
+WANDB_INTEGRATIONS = ["sklearn", "gym", "keras", "lightgbm",
+                    "sacred", "tensorflow", "tensorboard",
+                    "xgboost", "fastai", "torch", "sagemaker"]
 # fmt: on
 
 # later, we'll decide which parts of the sdk we're documenting
@@ -37,6 +42,7 @@ def build(commit_id, code_url_prefix, output_dir):
     build_library_docs(commit_id, code_url_prefix, output_dir)
     build_datatype_docs(commit_id, code_url_prefix, output_dir)
     build_api_docs(commit_id, code_url_prefix, output_dir)
+    build_integration_docs(commit_id, code_url_prefix, output_dir)
 
 
 def build_docs(name_pair, output_dir, code_url_prefix):
@@ -150,6 +156,24 @@ def build_api_docs(commit_id, code_url_prefix, output_dir):
 
     build_docs(
         name_pair=("public-api", wandb),
+        output_dir=os.path.join(output_dir, DIRNAME, LIBRARY_DIRNAME),
+        code_url_prefix=code_url_prefix,
+    )
+
+
+def build_integration_docs(commit_id, code_url_prefix, output_dir):
+    from wandb.integration import torch
+    from wandb.integration import sagemaker
+    # from wandb.integration import fastai
+    wandb.torch = torch
+    wandb.sagemaker = sagemaker
+    # wandb.fastai = fastai
+    
+    wandb.__all__ = WANDB_INTEGRATIONS
+    wandb.__doc__ = """\n"""
+
+    build_docs(
+        name_pair=("integrations", wandb),
         output_dir=os.path.join(output_dir, DIRNAME, LIBRARY_DIRNAME),
         code_url_prefix=code_url_prefix,
     )
