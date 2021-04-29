@@ -515,23 +515,23 @@ def _build_signature(
 
     full_signature = str(obj_info.signature)
 
-    parts = ["<pre>"]
+    parts = [""]
 
     if hasattr(obj_info, "decorators"):
         parts.extend(
             [
-                f"<code>@{dec}</code>\n"
+                f"```python\n@{dec}\n```\n"
                 for dec in obj_info.decorators
                 if dec in DECORATOR_ALLOWLIST
             ]
         )
 
     if type_alias:
-        parts.append(f"<code>{obj_name} = {full_signature}\n")
+        parts.append(f"```python\n{obj_name} = {full_signature}\n")
     else:
         obj_name = obj_name.split(".")[-1]
-        parts.append(f"<code>{obj_name}{full_signature}")
-    parts.append("</code></pre>\n\n")
+        parts.append(f"```python\n{obj_name}{full_signature}\n")
+    parts.append("```\n\n")
 
     return "".join(parts)
 
