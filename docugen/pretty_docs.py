@@ -384,11 +384,15 @@ def _build_method_section(method_info, heading_level=3):
 
 
 def _build_module_parts(
-    module_parts: List[parser.MemberInfo], template: str
+    module_parts: List[parser.MemberInfo], template: str, module: bool = False
 ) -> List[str]:
     mod_str_parts = []
     for item in module_parts:
-        changed_url = "./" + item.url.split("/")[-1].lower()
+        if module:
+            changed_url = "./" + item.url.split("/")[-1].lower()
+            changed_url = changed_url.replace(".md", "")
+        else:
+            changed_url = "./" + item.url.split("/")[-1].lower()
         item = item._replace(url=changed_url)
         mod_str_parts.append(template.format(**item._asdict()))
         if item.doc.brief:
@@ -436,6 +440,7 @@ def _build_module_page(page_info: parser.ModulePageInfo) -> str:
             _build_module_parts(
                 module_parts=page_info.modules,
                 template="[`{short_name}`]({url}) module",
+                module = True,
             )
         )
 

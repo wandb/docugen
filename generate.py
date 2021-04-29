@@ -23,6 +23,7 @@ DIRNAMES_TO_TITLES = {
     "data-types": "Data Types",
     "public-api": "Import & Export API",
     "python": "Python Library",
+    "integrations": "Integrations",
     "java": r"Java Library \[Beta\]",
 }
 
@@ -157,9 +158,11 @@ def infer_source(path):
     if path == DIRNAME:
         return [], ""
     elif "data-types" in path:
-        return library.WANDB_DATATYPES, "wandb.data_types."
+        return library.WANDB_DATATYPES, "wandb.data\_types."
     elif "public-api" in path:
         return library.WANDB_API, "wandb.apis.public."
+    elif "integrations" in path:
+        return library.WANDB_INTEGRATIONS, "wandb.integration."
     elif "python" in path:
         return library.WANDB_DOCLIST, "wandb."
     elif "java" or "app" in path:

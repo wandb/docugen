@@ -18,9 +18,11 @@ WANDB_API = ["Api", "Projects", "Project", "Runs", "Run",
              "Sweep", "Files", "File", "Artifact",]
 
 # which parts of the integration are we documenting?
-WANDB_INTEGRATIONS = ["sklearn", "gym", "keras", "lightgbm",
-                    "sacred", "tensorflow", "tensorboard",
-                    "xgboost", "fastai", "torch", "sagemaker"]
+WANDB_INTEGRATIONS = ["keras", 
+                    # "sklearn", "gym", "lightgbm",
+                    # "sacred", "tensorflow", "tensorboard",
+                    # "xgboost", "fastai", "torch", "sagemaker"
+                    ]
 # fmt: on
 
 # later, we'll decide which parts of the sdk we're documenting
@@ -162,12 +164,14 @@ def build_api_docs(commit_id, code_url_prefix, output_dir):
 
 
 def build_integration_docs(commit_id, code_url_prefix, output_dir):
-    from wandb.integration import torch
-    from wandb.integration import sagemaker
+    # from wandb.integration import torch
+    # from wandb.integration import sagemaker
     # from wandb.integration import fastai
-    wandb.torch = torch
-    wandb.sagemaker = sagemaker
+    # wandb.torch = torch
+    # wandb.sagemaker = sagemaker
     # wandb.fastai = fastai
+    from wandb.integration import keras as wandb_keras
+    wandb.keras = wandb_keras
     
     wandb.__all__ = WANDB_INTEGRATIONS
     wandb.__doc__ = """\n"""
