@@ -530,7 +530,7 @@ def _build_signature(
         parts.append(f"<code>{obj_name} = {full_signature}\n")
     else:
         obj_name = obj_name.split(".")[-1]
-        parts.append(f"<code>{obj_name}{full_signature}\n")
+        parts.append(f"<code>{obj_name}{full_signature}")
     parts.append("</code></pre>\n\n")
 
     return "".join(parts)
