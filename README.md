@@ -51,7 +51,7 @@ markdown files and put in their place one line reading `{docugen}`.
 python generate.py \
   --template_file _SUMMARY.md \
   --commit_id v0.10.28 \
-  --output_dir /Users/arig23498/Documents/Github_Repos/ariG23498/Aritra-Documentation
+  --output_dir path/to/gitbook
 ```
 
 ### Requirements
