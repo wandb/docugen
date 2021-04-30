@@ -520,7 +520,7 @@ def _build_signature(
     if hasattr(obj_info, "decorators"):
         parts.extend(
             [
-                f"<code>@{dec}<code>\n"
+                f"<code>@{dec}</code>\n"
                 for dec in obj_info.decorators
                 if dec in DECORATOR_ALLOWLIST
             ]
