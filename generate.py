@@ -67,28 +67,6 @@ def main(args):
     clean_names(ref_dir)
 
 
-def check_commit_id(commit_id):
-    """
-    Checks for a valid commit id.
-
-    Args:
-        commit_id: The commit id provided
-    """
-
-    if "." in commit_id:
-        # commit_id is a version
-        wandb_version = f"v{wandb.__version__}"
-        assert (
-            wandb_version == commit_id
-        ), f"git version does not match wandb version {wandb_version}"
-    else:
-        # commit_id is a git hash
-        commit_id_len = len(commit_id)
-        assert (
-            commit_id_len == 40
-        ), f"git hash must have all 40 characters, was {commit_id}"
-
-
 def populate_summary(
     docgen_folder: str, template_file: str = "_SUMMARY.md", output_dir: str = "."
 ) -> None:
@@ -301,6 +279,28 @@ def get_args():
         + "Defaults to current directory.",
     )
     return parser.parse_args()
+
+
+def check_commit_id(commit_id):
+    """
+    Checks for a valid commit id.
+
+    Args:
+        commit_id: The commit id provided
+    """
+
+    if "." in commit_id:
+        # commit_id is a version
+        wandb_version = f"v{wandb.__version__}"
+        assert (
+            wandb_version == commit_id
+        ), f"git version does not match wandb version {wandb_version}"
+    else:
+        # commit_id is a git hash
+        commit_id_len = len(commit_id)
+        assert (
+            commit_id_len == 40
+        ), f"git hash must have all 40 characters, was {commit_id}"
 
 
 if __name__ == "__main__":
