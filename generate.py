@@ -135,7 +135,7 @@ def add_files(files: list, root: str, indent: int) -> list:
         if file_name == "README.md" or not file_name.endswith(".md"):
             continue
         short_name = file_name.split(".")[0]
-        source_prefix = infer_source(root)
+        source_prefix = get_prefix(root)
         short_name = convert_name(short_name)
         file_name = file_name.lower()
         file_markdown = (
@@ -146,7 +146,7 @@ def add_files(files: list, root: str, indent: int) -> list:
     return file_markdowns
 
 
-def infer_source(path):
+def get_prefix(path):
     if path == DIRNAME:
         return [], ""
     elif "data-types" in path:
