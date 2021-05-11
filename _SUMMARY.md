@@ -1,4 +1,5 @@
-# Table of Contents
+# Table of contents
 
 * [Documentation Generation](README.md)
 {docugen}
+

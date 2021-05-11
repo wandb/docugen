@@ -23,6 +23,7 @@ DIRNAMES_TO_TITLES = {
     "data-types": "Data Types",
     "public-api": "Import & Export API",
     "python": "Python Library",
+    "integrations": "Integrations",
     "java": r"Java Library \[Beta\]",
 }
 
@@ -31,18 +32,10 @@ SKIPS = ["app", "java"]
 
 def main(args):
     commit_id = args.commit_id
-    if "." in commit_id:
-        # commit_id is a version
-        wandb_version = f"v{wandb.__version__}"
-        assert (
-            wandb_version == commit_id
-        ), f"git version does not match wandb version {wandb_version}"
-    else:
-        # commit_id is a git hash
-        commit_id_len = len(commit_id)
-        assert (
-            commit_id_len == 40
-        ), f"git hash must have all 40 characters, was {commit_id}"
+
+    # check valid commit id
+    check_commit_id(commit_id)
+
     output_dir = args.output_dir
     template_file = args.template_file
 
@@ -59,7 +52,6 @@ def main(args):
 
     # convert .build output to GitBook format
     rename_to_readme(ref_dir)
-    clean_names(ref_dir)
 
     # Create the CLI docs
     cli.build(ref_dir)
@@ -70,6 +62,9 @@ def main(args):
     # fill the SUMMARY.md with generated doc files,
     #  based on provided template.
     populate_summary(ref_dir, template_file, output_dir=output_dir)
+
+    # clean_names(ref_dir)
+    clean_names(ref_dir)
 
 
 def populate_summary(
@@ -140,11 +135,9 @@ def add_files(files: list, root: str, indent: int) -> list:
         if file_name == "README.md" or not file_name.endswith(".md"):
             continue
         short_name = file_name.split(".")[0]
-        source, source_prefix = infer_source(root)
-        if short_name.title() in source:
-            short_name = short_name.title()
+        source_prefix = get_prefix(root)
         short_name = convert_name(short_name)
-
+        file_name = file_name.lower()
         file_markdown = (
             indentation + f"  * [{source_prefix + short_name}]({root}/{file_name})"
         )
@@ -153,19 +146,23 @@ def add_files(files: list, root: str, indent: int) -> list:
     return file_markdowns
 
 
-def infer_source(path):
+def get_prefix(path):
     if path == DIRNAME:
         return [], ""
     elif "data-types" in path:
-        return library.WANDB_DATATYPES, "wandb.data_types."
+        return "wandb.data\_types."
     elif "public-api" in path:
-        return library.WANDB_API, "wandb.apis.public."
+        return "wandb.apis.public."
+
+    elif "integrations" in path:
+        package_name = path.split("/")[-1]
+        return f"wandb.{package_name}."
     elif "python" in path:
-        return library.WANDB_DOCLIST, "wandb."
+        return "wandb."
     elif "java" or "app" in path:
-        return [], ""
+        return ""
     else:
-        return [], ""
+        return ""
 
 
 def convert_name(name):
@@ -282,6 +279,28 @@ def get_args():
         + "Defaults to current directory.",
     )
     return parser.parse_args()
+
+
+def check_commit_id(commit_id):
+    """
+    Checks for a valid commit id.
+
+    Args:
+        commit_id: The commit id provided
+    """
+
+    if "." in commit_id:
+        # commit_id is a version
+        wandb_version = f"v{wandb.__version__}"
+        assert (
+            wandb_version == commit_id
+        ), f"git version does not match wandb version {wandb_version}"
+    else:
+        # commit_id is a git hash
+        commit_id_len = len(commit_id)
+        assert (
+            commit_id_len == 40
+        ), f"git hash must have all 40 characters, was {commit_id}"
 
 
 if __name__ == "__main__":

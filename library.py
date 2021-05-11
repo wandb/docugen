@@ -16,13 +16,20 @@ WANDB_DATATYPES = ["Graph", "Image", "Plotly", "Video",
 # which parts of the API are we documenting?
 WANDB_API = ["Api", "Projects", "Project", "Runs", "Run",
              "Sweep", "Files", "File", "Artifact",]
+
+# which parts of the integration are we documenting?
+WANDB_INTEGRATIONS = ["keras", 
+                    # "sklearn", "gym", "lightgbm",
+                    # "sacred", "tensorflow", "tensorboard",
+                    # "xgboost", "fastai", "torch", "sagemaker"
+                    ]
 # fmt: on
 
 # later, we'll decide which parts of the sdk we're documenting
 WANDB_DOCLIST = []
 
 
-def build(git_hash, code_url_prefix, output_dir):
+def build(commit_id, code_url_prefix, output_dir):
     """Builds docs in three stages: library, data types, and API.
 
     For now, this involves a lot of special-casing.
@@ -34,9 +41,10 @@ def build(git_hash, code_url_prefix, output_dir):
     #  attribute of the wandb module, populating it with
     #  the relevant objects and then generating docs.
 
-    build_library_docs(git_hash, code_url_prefix, output_dir)
-    build_datatype_docs(git_hash, code_url_prefix, output_dir)
-    build_api_docs(git_hash, code_url_prefix, output_dir)
+    build_library_docs(commit_id, code_url_prefix, output_dir)
+    build_datatype_docs(commit_id, code_url_prefix, output_dir)
+    build_api_docs(commit_id, code_url_prefix, output_dir)
+    build_integration_docs(commit_id, code_url_prefix, output_dir)
 
 
 def build_docs(name_pair, output_dir, code_url_prefix):
@@ -61,7 +69,7 @@ def build_docs(name_pair, output_dir, code_url_prefix):
     doc_generator.build(output_dir)
 
 
-def build_library_docs(git_hash, code_url_prefix, output_dir):
+def build_library_docs(commit_id, code_url_prefix, output_dir):
     # we start from the current __all__ attribute
     doclist = wandb.__all__
 
@@ -107,7 +115,7 @@ def build_library_docs(git_hash, code_url_prefix, output_dir):
     )
 
 
-def build_datatype_docs(git_hash, code_url_prefix, output_dir):
+def build_datatype_docs(commit_id, code_url_prefix, output_dir):
 
     wandb.__all__ = WANDB_DATATYPES
     wandb.__doc__ = """\n"""
@@ -119,7 +127,7 @@ def build_datatype_docs(git_hash, code_url_prefix, output_dir):
     )
 
 
-def build_api_docs(git_hash, code_url_prefix, output_dir):
+def build_api_docs(commit_id, code_url_prefix, output_dir):
 
     # this should be made cleaner
     #  by either using the __all__ of the api
@@ -150,6 +158,26 @@ def build_api_docs(git_hash, code_url_prefix, output_dir):
 
     build_docs(
         name_pair=("public-api", wandb),
+        output_dir=os.path.join(output_dir, DIRNAME, LIBRARY_DIRNAME),
+        code_url_prefix=code_url_prefix,
+    )
+
+
+def build_integration_docs(commit_id, code_url_prefix, output_dir):
+    # from wandb.integration import torch
+    # from wandb.integration import sagemaker
+    # from wandb.integration import fastai
+    # wandb.torch = torch
+    # wandb.sagemaker = sagemaker
+    # wandb.fastai = fastai
+    from wandb.integration import keras as wandb_keras
+    wandb.keras = wandb_keras
+    
+    wandb.__all__ = WANDB_INTEGRATIONS
+    wandb.__doc__ = """\n"""
+
+    build_docs(
+        name_pair=("integrations", wandb),
         output_dir=os.path.join(output_dir, DIRNAME, LIBRARY_DIRNAME),
         code_url_prefix=code_url_prefix,
     )
