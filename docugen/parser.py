@@ -292,7 +292,7 @@ AUTO_REFERENCE_RE = re.compile(
     r"""
     (?P<brackets>\[.*?\])                    # find characters inside '[]'
     |
-    `(?P<backticks>[\w\(\[\)\]\{\}.,=\s]+?)` # or find characters inside '``'
+    `(?P<backticks>[\w\(\[\)\]\{\}.,=\s\*]+?)` # or find characters and star inside '``'
     """,
     flags=re.VERBOSE,
 )
