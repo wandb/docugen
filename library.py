@@ -200,3 +200,10 @@ def configure_doc_hiding():
         doc_controls.decorate_all_class_attributes(
             decorator=deco, cls=cls, skip=["__init__"]
         )
+
+    # For keras
+    from tensorflow import keras
+    deco = doc_controls.do_not_doc_in_subclasses
+    doc_controls.decorate_all_class_attributes(
+            decorator=deco, cls=keras.callbacks.Callback, skip=["__init__", "set_model", "set_params"]
+        )

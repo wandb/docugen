@@ -25,6 +25,7 @@ DIRNAMES_TO_TITLES = {
     "python": "Python Library",
     "integrations": "Integrations",
     "java": r"Java Library \[Beta\]",
+    "keras": "Keras",
 }
 
 SKIPS = ["app", "java"]
