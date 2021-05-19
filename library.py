@@ -1,29 +1,19 @@
 import os
-
+import yaml
 from docugen import doc_controls
 from docugen import generate
 import wandb
 
-DIRNAME = "ref"
-LIBRARY_DIRNAME = "python"
+# LOAD YAML CONFIG
+yaml_filename = 'config.yaml'
+with open(yaml_filename) as yaml_file:
+    p_yaml_file = yaml.load(yaml_file, Loader=yaml.FullLoader)
 
-# fmt: off
-# which datatypes are we documenting?
-WANDB_DATATYPES = ["Graph", "Image", "Plotly", "Video",
-                   "Audio", "Table", "Html", "Object3D",
-                   "Molecule", "Histogram",]
-
-# which parts of the API are we documenting?
-WANDB_API = ["Api", "Projects", "Project", "Runs", "Run",
-             "Sweep", "Files", "File", "Artifact",]
-
-# which parts of the integration are we documenting?
-WANDB_INTEGRATIONS = ["keras", 
-                    # "sklearn", "gym", "lightgbm",
-                    # "sacred", "tensorflow", "tensorboard",
-                    # "xgboost", "fastai", "torch", "sagemaker"
-                    ]
-# fmt: on
+DIRNAME = p_yaml_file["DIRNAME"]
+LIBRARY_DIRNAME = p_yaml_file["LIBRARY_DIRNAME"]
+WANDB_DATATYPES = p_yaml_file["WANDB_DATATYPES"]
+WANDB_API = p_yaml_file["WANDB_API"]
+WANDB_INTEGRATIONS = p_yaml_file["WANDB_INTEGRATIONS"]
 
 # later, we'll decide which parts of the sdk we're documenting
 WANDB_DOCLIST = []
