@@ -4,16 +4,15 @@ from docugen import doc_controls
 from docugen import generate
 import wandb
 
-# LOAD YAML CONFIG
-yaml_filename = 'config.yaml'
-with open(yaml_filename) as yaml_file:
-    p_yaml_file = yaml.load(yaml_file, Loader=yaml.FullLoader)
+import configparser
+config = configparser.ConfigParser()
+config.read('config.ini')
 
-DIRNAME = p_yaml_file["DIRNAME"]
-LIBRARY_DIRNAME = p_yaml_file["LIBRARY_DIRNAME"]
-WANDB_DATATYPES = p_yaml_file["WANDB_DATATYPES"]
-WANDB_API = p_yaml_file["WANDB_API"]
-WANDB_INTEGRATIONS = p_yaml_file["WANDB_INTEGRATIONS"]
+DIRNAME = config["GLOBAL"]["DIRNAME"]
+LIBRARY_DIRNAME = config["GLOBAL"]["LIBRARY_DIRNAME"]
+WANDB_DATATYPES = config["WANDB_DATATYPES"]["elements"].split(",")
+WANDB_API = config["WANDB_API"]["elements"].split(",")
+WANDB_INTEGRATIONS = config["WANDB_INTEGRATIONS"]["elements"].split(",")
 
 # later, we'll decide which parts of the sdk we're documenting
 WANDB_DOCLIST = []

@@ -5,7 +5,6 @@ For help, run:
 
 python generate.py --help
 """
-import yaml
 import argparse
 import os
 from pathlib import Path
@@ -17,14 +16,13 @@ import library
 import wandb  # to get the wandb version
 
 
-# LOAD YAML CONFIG
-yaml_filename = 'config.yaml'
-with open(yaml_filename) as yaml_file:
-    p_yaml_file = yaml.load(yaml_file, Loader=yaml.FullLoader)
+import configparser
+config = configparser.ConfigParser()
+config.read('config.ini')
 
-DIRNAME= p_yaml_file["DIRNAME"]
-DIRNAMES_TO_TITLES = p_yaml_file["DIRNAMES_TO_TITLES"]
-SKIPS = p_yaml_file["SKIPS"]
+DIRNAME = config["GLOBAL"]["DIRNAME"]
+DIRNAMES_TO_TITLES = config["DIRNAMES_TO_TITLES"]
+SKIPS = config["SKIPS"]["elements"].split(",")
 
 
 def main(args):
