@@ -515,23 +515,23 @@ def _build_signature(
 
     full_signature = str(obj_info.signature)
 
-    parts = ["<pre>"]
+    parts = ["```python\n"]
 
     if hasattr(obj_info, "decorators"):
         parts.extend(
             [
-                f"<code>@{dec}</code>\n"
+                f"@{dec}\n"
                 for dec in obj_info.decorators
                 if dec in DECORATOR_ALLOWLIST
             ]
         )
 
     if type_alias:
-        parts.append(f"<code>{obj_name} = {full_signature}\n")
+        parts.append(f"{obj_name} = {full_signature}\n")
     else:
         obj_name = obj_name.split(".")[-1]
-        parts.append(f"<code>{obj_name}{full_signature}")
-    parts.append("</code></pre>\n\n")
+        parts.append(f"{obj_name}{full_signature}\n")
+    parts.append("```\n\n")
 
     return "".join(parts)
 
@@ -549,11 +549,7 @@ _TABLE_TEMPLATE = textwrap.dedent(
     {table_footer}"""
 )
 
-_TABLE_LINK_TEMPLATE = textwrap.dedent(
-    """\
-  [![](https://www.tensorflow.org/images/GitHub-Mark-32px.png)View source on GitHub]({url})
-  """
-)
+_TABLE_LINK_TEMPLATE = """[![](https://www.tensorflow.org/images/GitHub-Mark-32px.png)View source on GitHub]({url})"""
 
 
 def _top_source_link(location):
@@ -579,7 +575,7 @@ def _top_source_link(location):
 
 def _small_source_link(location):
     """Returns a small source link."""
-    template = '<a target="_blank" href="{url}">View source</a>\n\n'
+    template = '[View source]({url})\n\n'
 
     if not location.url:
         return ""
