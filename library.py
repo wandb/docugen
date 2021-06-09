@@ -1,29 +1,18 @@
 import os
-
+import yaml
 from docugen import doc_controls
 from docugen import generate
 import wandb
 
-DIRNAME = "ref"
-LIBRARY_DIRNAME = "python"
+import configparser
+config = configparser.ConfigParser()
+config.read('config.ini')
 
-# fmt: off
-# which datatypes are we documenting?
-WANDB_DATATYPES = ["Graph", "Image", "Plotly", "Video",
-                   "Audio", "Table", "Html", "Object3D",
-                   "Molecule", "Histogram",]
-
-# which parts of the API are we documenting?
-WANDB_API = ["Api", "Projects", "Project", "Runs", "Run",
-             "Sweep", "Files", "File", "Artifact",]
-
-# which parts of the integration are we documenting?
-WANDB_INTEGRATIONS = ["keras", 
-                    # "sklearn", "gym", "lightgbm",
-                    # "sacred", "tensorflow", "tensorboard",
-                    # "xgboost", "fastai", "torch", "sagemaker"
-                    ]
-# fmt: on
+DIRNAME = config["GLOBAL"]["DIRNAME"]
+LIBRARY_DIRNAME = config["GLOBAL"]["LIBRARY_DIRNAME"]
+WANDB_DATATYPES = config["WANDB_DATATYPES"]["elements"].split(",")
+WANDB_API = config["WANDB_API"]["elements"].split(",")
+WANDB_INTEGRATIONS = config["WANDB_INTEGRATIONS"]["elements"].split(",")
 
 # later, we'll decide which parts of the sdk we're documenting
 WANDB_DOCLIST = []

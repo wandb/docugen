@@ -6,29 +6,23 @@ For help, run:
 python generate.py --help
 """
 import argparse
+import configparser
 import os
 from pathlib import Path
 import shutil
 
+import wandb
+
 import cli
 import library
 
-import wandb  # to get the wandb version
 
-DIRNAME = library.DIRNAME  # directory name for docugens
+config = configparser.ConfigParser()
+config.read("config.ini")
 
-DIRNAMES_TO_TITLES = {
-    DIRNAME: "Reference",
-    "cli": "Command Line Interface",
-    "data-types": "Data Types",
-    "public-api": "Import & Export API",
-    "python": "Python Library",
-    "integrations": "Integrations",
-    "java": r"Java Library \[Beta\]",
-    "keras": "Keras",
-}
-
-SKIPS = ["app", "java"]
+DIRNAME = config["GLOBAL"]["DIRNAME"]
+DIRNAMES_TO_TITLES = config["DIRNAMES_TO_TITLES"]
+SKIPS = config["SKIPS"]["elements"].split(",")
 
 
 def main(args):
@@ -151,7 +145,7 @@ def get_prefix(path):
     if path == DIRNAME:
         return [], ""
     elif "data-types" in path:
-        return "wandb.data\_types."
+        return "wandb.data\_types."  # noqa
     elif "public-api" in path:
         return "wandb.apis.public."
 
