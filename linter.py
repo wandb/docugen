@@ -1,11 +1,11 @@
 """
 This file holds the logic of linting.
 """
-import os # used for system calls
-import inspect # getting the file name
+import os
+import inspect
 import wandb
-import sacred # to get wandb.__dict__
 import yaml
+
 # LOAD YAML CONFIG
 yaml_filename = 'config.yaml'
 with open(yaml_filename) as yaml_file:
@@ -94,7 +94,7 @@ def get_integration_files():
     # wandb.fastai = fastai
     from wandb.integration import keras as wandb_keras
     wandb.keras = wandb_keras
-    
+
     wandb.__all__ = WANDB_INTEGRATIONS
     wandb_all = [wandb.__dict__[w] for w in wandb.__all__]
     WANDB_FILENAME.extend([inspect.getfile(wa) for wa in wandb_all])
@@ -109,4 +109,5 @@ if __name__ == "__main__":
     # lint with pydocstyle
     for w_file in wandb_files:
         select = "--select=D205,D212,D400,D401,D402,D403,D404,D405,D417 "
-        os.system(f'pydocstyle {select} {w_file}')
+        print(w_file)
+        # os.system(f"pydocstyle {select} {w_file}")
