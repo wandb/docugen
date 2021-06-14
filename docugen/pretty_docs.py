@@ -338,7 +338,7 @@ def _other_members(other_members: List[parser.MemberInfo], title: str):
 
         items.append(
             parser.ITEMS_TEMPLATE.format(
-                name=other_member.short_name,
+                name=f"`{other_member.short_name}`",
                 anchor=f'<a id="{other_member.short_name}"></a>',
                 description="\n".join(description),
             )
@@ -440,7 +440,7 @@ def _build_module_page(page_info: parser.ModulePageInfo) -> str:
             _build_module_parts(
                 module_parts=page_info.modules,
                 template="[`{short_name}`]({url}) module",
-                module = True,
+                module=True,
             )
         )
 
