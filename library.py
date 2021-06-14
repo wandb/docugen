@@ -1,5 +1,4 @@
 import os
-import yaml
 from docugen import doc_controls
 from docugen import generate
 import wandb
@@ -161,7 +160,7 @@ def build_integration_docs(commit_id, code_url_prefix, output_dir):
     # wandb.fastai = fastai
     from wandb.integration import keras as wandb_keras
     wandb.keras = wandb_keras
-    
+
     wandb.__all__ = WANDB_INTEGRATIONS
     wandb.__doc__ = """\n"""
 
@@ -194,5 +193,4 @@ def configure_doc_hiding():
     from tensorflow import keras
     deco = doc_controls.do_not_doc_in_subclasses
     doc_controls.decorate_all_class_attributes(
-            decorator=deco, cls=keras.callbacks.Callback, skip=["__init__", "set_model", "set_params"]
-        )
+        decorator=deco, cls=keras.callbacks.Callback, skip=["__init__", "set_model", "set_params"])
