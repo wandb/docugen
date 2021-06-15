@@ -106,6 +106,8 @@ def build_library_docs(commit_id, code_url_prefix, output_dir):
 def build_datatype_docs(commit_id, code_url_prefix, output_dir):
 
     wandb.__all__ = WANDB_DATATYPES
+    wandb.BoundingBoxes2D = wandb.data_types.BoundingBoxes2D
+    wandb.ImageMask = wandb.data_types.ImageMask
     wandb.__doc__ = """\n"""
 
     build_docs(
