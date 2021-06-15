@@ -1,5 +1,6 @@
-"""A tool to generate reference documentation for the
-Weights & Biases client library and for the wandb CLI tool.
+"""Generate reference documentation for Weights & Biases.
+
+Creates docs for the Weights & Biases client library and for the wandb CLI tool.
 
 For help, run:
 
@@ -71,8 +72,7 @@ def main(args):
 def populate_summary(
     docgen_folder: str, template_file: str = "_SUMMARY.md", output_dir: str = "."
 ) -> None:
-    """Populates the output file with generated file names
-    by filling in the template_file at the {docugen} location.
+    """Populates SUMMARY.md fiel describing gitbook sidebar.
 
     GitBook uses a `SUMMARY.md` file to determine which
     files to show in the sidebar. When using docugen,
@@ -99,10 +99,7 @@ def populate_summary(
 
 
 def walk_docugen(folder: str) -> str:
-    """Walks a folder, pulls out all of the markdown files,
-    formats their names into markdown strings with appropriate links
-    and formatting for a GitBook SUMMARY.md, then returns that block of markdown.
-    """
+    """Walk a folder and return a markdown-formatted list of markdown files."""
 
     docugen_markdowns = []
     indent = 0
@@ -151,7 +148,7 @@ def get_prefix(path):
     if path == DIRNAME:
         return [], ""
     elif "data-types" in path:
-        return "wandb.data\_types."
+        return r"wandb.data\_types."
     elif "public-api" in path:
         return "wandb.apis.public."
 
@@ -176,8 +173,7 @@ def convert_name(name):
 
 
 def rename_to_readme(directory):
-    """Moves all the folder-level markdown files into
-    their respective folders, as a README."""
+    """Moves all the folder-level markdown files into their respective folders, as a README."""
 
     for root, folders, file_names in os.walk(directory):
         for file_name in file_names:
@@ -190,7 +186,7 @@ def rename_to_readme(directory):
 
 
 def clean_names(directory):
-    """Converts names to lower case and removes spaces"""
+    """Converts names to lower case and removes spaces."""
     for root, folders, file_names in os.walk(directory):
         for name in file_names:
             if name == "README.md":
@@ -204,17 +200,17 @@ def clean_names(directory):
 
 
 def single_folder_format(directory):
-    """
-    Convert single file folders to single files.
+    """Converts all sub-folders that only contain README.md to single files, as expected by GitBook.
 
-    This is done to combat the huge differences generated
-    by GitBook.
-    eg.
-    - folder
-        - README.md
+    So the tree:
+        - folder
+            - README.md
 
     changes to
-    - folder.md
+        - folder.md
+
+    Args:
+        directory: str. The directory to walk through.
     """
     for root, folders, file_names in os.walk(directory):
         number_of_folders = len(folders)
@@ -283,8 +279,7 @@ def get_args():
 
 
 def check_commit_id(commit_id):
-    """
-    Checks for a valid commit id.
+    """Checks for a valid commit id.
 
     Args:
         commit_id: The commit id provided
