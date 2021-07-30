@@ -72,7 +72,7 @@ def main(args):
 def populate_summary(
     docgen_folder: str, template_file: str = "_SUMMARY.md", output_dir: str = "."
 ) -> None:
-    """Populates SUMMARY.md fiel describing gitbook sidebar.
+    """Populates SUMMARY.md field describing gitbook sidebar.
 
     GitBook uses a `SUMMARY.md` file to determine which
     files to show in the sidebar. When using docugen,
@@ -86,7 +86,6 @@ def populate_summary(
         output_dir: str. Directory into which to write the final
             SUMMARY.md file.
     """
-
     with open(template_file, "r") as f:
         doc_structure = f.read()
 
@@ -100,7 +99,6 @@ def populate_summary(
 
 def walk_docugen(folder: str) -> str:
     """Walk a folder and return a markdown-formatted list of markdown files."""
-
     docugen_markdowns = []
     indent = 0
     for path, dirs, files in os.walk(folder):
@@ -174,7 +172,6 @@ def convert_name(name):
 
 def rename_to_readme(directory):
     """Moves all the folder-level markdown files into their respective folders, as a README."""
-
     for root, folders, file_names in os.walk(directory):
         for file_name in file_names:
             raw_file_name, suffix = file_name[:-3], file_name[-3:]
@@ -284,7 +281,6 @@ def check_commit_id(commit_id):
     Args:
         commit_id: The commit id provided
     """
-
     if "." in commit_id:
         # commit_id is a version
         wandb_version = f"v{wandb.__version__}"
