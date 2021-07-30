@@ -490,7 +490,7 @@ class ReferenceResolver(object):
         # Found a '``' group.
         if match.group(2):
             string = match.group("backticks")
-            string = "<code>" + string + "</code>"
+            string = "`" + string + "`"
             return string
 
         return match.group(0)
@@ -510,37 +510,11 @@ def _pairs(items):
 
 
 # Don't change the width="214px" without consulting with the devsite-team.
-TABLE_TEMPLATE = textwrap.dedent(
-    """
-  <!-- Tabular view -->
-  <table>
-  <tr><th>{title}</th></tr>
-  {text}
-  {items}
-  </table>
-  """
-)
+TABLE_TEMPLATE = """\n| {title} |  |\n| :--- | :--- |\n{text}{items}"""
 
-ITEMS_TEMPLATE = textwrap.dedent(
-    """\
-  <tr>
-  <td>
-  {name}{anchor}
-  </td>
-  <td>
-  {description}
-  </td>
-  </tr>"""
-)
+ITEMS_TEMPLATE = """|  {name}{anchor} |  {description} |\n"""
 
-TEXT_TEMPLATE = textwrap.dedent(
-    """\
-  <tr>
-  <td>
-  {text}
-  </td>
-  </tr>"""
-)
+TEXT_TEMPLATE = """|  {text} |\n"""
 
 
 class TitleBlock(object):
@@ -615,6 +589,10 @@ class TitleBlock(object):
 
         text = self.text.strip()
         if text:
+            # text is a para with \n
+            # we need to transform the para
+            # into a single line for table formatting
+            text = " ".join(text.split())
             text = TEXT_TEMPLATE.format(text=text)
             text = self._INDENTATION_REMOVAL_RE.sub(r"\2", text)
 
@@ -626,8 +604,12 @@ class TitleBlock(object):
                 continue
             else:
                 description = description.strip()
+            # description is a para with \n
+            # we need to transform the para
+            # into a single line for table formatting
+            description = " ".join(description.split())
             item_table = ITEMS_TEMPLATE.format(
-                name=f"<code>{name}</code>", anchor="", description=description
+                name=f"`{name}`", anchor="", description=description
             )
             item_table = self._INDENTATION_REMOVAL_RE.sub(r"\2", item_table)
             items.append(item_table)
@@ -1253,7 +1235,7 @@ def generate_signature(
         return_type = formatter.format_return(return_anno)
     else:
         return_type = "None"
-
+    all_args_list = list(map(lambda x: x.replace('&#x27;', '"'), all_args_list))
     return _SignatureComponents(
         arguments=all_args_list,
         arguments_typehint_exists=arguments_typehint_exists,
