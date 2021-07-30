@@ -1,5 +1,4 @@
 import os
-import yaml
 from docugen import doc_controls
 from docugen import generate
 import wandb
@@ -19,11 +18,7 @@ WANDB_DOCLIST = []
 
 
 def build(commit_id, code_url_prefix, output_dir):
-    """Builds docs in three stages: library, data types, and API.
-
-    For now, this involves a lot of special-casing.
-    """
-
+    """Builds docs in three stages: library, data types, and API."""
     configure_doc_hiding()
 
     # each of these operates by changing the __all__
@@ -37,17 +32,13 @@ def build(commit_id, code_url_prefix, output_dir):
 
 
 def build_docs(name_pair, output_dir, code_url_prefix):
-    """Build api docs for W&B.
+    """Builds api docs for W&B.
 
     Args:
         name_pair: Name of the pymodule
         output_dir: A string path, where to put the files.
         code_url_prefix: prefix for "Defined in" links.
-        search_hints: Bool. Include meta-data search hints at the top of each file.
-        gen_report: Bool. Generates an API report containing the health of the
-            docstrings of the public API.
     """
-
     doc_generator = generate.DocGenerator(
         root_title="W&B",
         py_modules=[name_pair],
@@ -107,6 +98,7 @@ def build_library_docs(commit_id, code_url_prefix, output_dir):
 def build_datatype_docs(commit_id, code_url_prefix, output_dir):
 
     wandb.__all__ = WANDB_DATATYPES
+    print(wandb.__all__)
     wandb.__doc__ = """\n"""
 
     build_docs(
@@ -161,7 +153,7 @@ def build_integration_docs(commit_id, code_url_prefix, output_dir):
     # wandb.fastai = fastai
     from wandb.integration import keras as wandb_keras
     wandb.keras = wandb_keras
-    
+
     wandb.__all__ = WANDB_INTEGRATIONS
     wandb.__doc__ = """\n"""
 
@@ -190,9 +182,7 @@ def configure_doc_hiding():
             decorator=deco, cls=cls, skip=["__init__"]
         )
 
-    # For keras
     from tensorflow import keras
     deco = doc_controls.do_not_doc_in_subclasses
     doc_controls.decorate_all_class_attributes(
-            decorator=deco, cls=keras.callbacks.Callback, skip=["__init__", "set_model", "set_params"]
-        )
+        decorator=deco, cls=keras.callbacks.Callback, skip=["__init__", "set_model", "set_params"])
