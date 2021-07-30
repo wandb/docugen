@@ -98,7 +98,6 @@ def build_library_docs(commit_id, code_url_prefix, output_dir):
 def build_datatype_docs(commit_id, code_url_prefix, output_dir):
 
     wandb.__all__ = WANDB_DATATYPES
-    print(wandb.__all__)
     wandb.__doc__ = """\n"""
 
     build_docs(
