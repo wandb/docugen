@@ -102,7 +102,7 @@ def walk_docugen(folder: str, output_dir: Path, base: Path) -> str:
 
     # extract title information
     path = Path(path)
-    indent, title, relative_path  = get_info_markdown_path(path, output_dir)
+    indent, title, relative_path = get_info_markdown_path(path, output_dir)
     docugen_markdown = "  " * indent + f"* [{title}]({relative_path}/README.md)\n"
 
     # recursively generate markdown from sub-directories
