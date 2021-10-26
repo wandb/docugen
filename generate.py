@@ -17,6 +17,8 @@ import wandb
 import cli
 import library
 
+import util
+
 
 config = configparser.ConfigParser()
 config.read("config.ini")
@@ -24,6 +26,12 @@ config.read("config.ini")
 DIRNAME = config["GLOBAL"]["DIRNAME"]
 DIRNAMES_TO_TITLES = config["DIRNAMES_TO_TITLES"]
 SKIPS = config["SKIPS"]["elements"].split(",")
+
+subconfig_names = config["SUBCONFIGS"]["names"].split(",")
+
+subconfigs = util.process_subconfigs(config, subconfig_names)
+
+WANDB_CORE, WANDB_DATATYPES, WANDB_API, WANDB_INTEGRATIONS = subconfigs
 
 
 def main(args):
@@ -142,14 +150,17 @@ def get_prefix(path):
     if path == DIRNAME:
         return [], ""
     elif "data-types" in path:
-        return "wandb.data\_types."  # noqa
+        return WANDB_DATATYPES["slug"]
     elif "public-api" in path:
-        return "wandb.apis.public."
+        return WANDB_API["slug"]
     elif "integrations" in path:
+        starter_slug = WANDB_INTEGRATIONS["slug"]
         package_name = path.split("/")[-1]
-        return f"wandb.{package_name}."
+        if package_name == "integrations":
+            package_name = "sdk.integration_utils.data_logging"
+        return f"{starter_slug}{package_name}."
     elif "python" in path:
-        return "wandb."
+        return WANDB_CORE["slug"]
     elif "java" or "app" in path:
         return ""
     else:
@@ -275,7 +286,7 @@ def get_args():
         "--template_file",
         type=str,
         default="_SUMMARY.md",
-        help="Template markdown file with {docugen} where filenames to be written. "
+        help="Template markdown file for table of contents. "
         + "Defaults to ./_SUMMARY.md",
     )
     parser.add_argument(

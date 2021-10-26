@@ -8,6 +8,8 @@ import wandb
 from docugen import doc_controls
 from docugen import generate
 
+import util
+
 config = configparser.ConfigParser()
 config.read("config.ini")
 
@@ -16,14 +18,14 @@ LIBRARY_DIRNAME = config["WANDB_CORE"]["dirname"]
 
 subconfig_names = config["SUBCONFIGS"]["names"].split(",")
 
+subconfigs = util.process_subconfigs(config, subconfig_names)
+
+WANDB_CORE, WANDB_DATATYPES, WANDB_API, WANDB_INTEGRATIONS = subconfigs
+
 
 def build(commit_id, code_url_prefix, output_dir):
     """Builds docs in stages: main library, then subcomponents."""
     configure_doc_hiding()
-
-    subconfigs = process_subconfigs(config, subconfig_names)
-
-    WANDB_CORE, WANDB_DATATYPES, WANDB_API, WANDB_INTEGRATIONS = subconfigs
 
     output_dir = os.path.join(output_dir, DIRNAME)
     build_docs_from_config(WANDB_CORE, commit_id, code_url_prefix, output_dir)
@@ -113,14 +115,3 @@ def configure_doc_hiding():
     deco = doc_controls.do_not_doc_in_subclasses
     doc_controls.decorate_all_class_attributes(
         decorator=deco, cls=keras.callbacks.Callback, skip=["__init__", "set_model", "set_params"])
-
-
-def process_subconfigs(config, subconfig_names):
-    """Applies some processing logic to config entries."""
-    subconfigs = []
-    for name in subconfig_names:
-        subconfig = dict(config[name])
-        subconfig["add-elements"] = subconfig["add-elements"].split(",")
-        subconfig["elements"] = subconfig["elements"].split(",")
-        subconfigs.append(subconfig)
-    return subconfigs
