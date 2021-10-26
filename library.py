@@ -1,4 +1,5 @@
 import configparser
+from importlib import import_module
 import operator
 import os
 
@@ -16,37 +17,39 @@ LIBRARY_DIRNAME = config["WANDB_CORE"]["dirname"]
 subconfig_names = config["SUBCONFIGS"]["names"].split(",")
 
 
-def process_subconfigs(config, subconfig_names):
-    subconfigs = []
-    for name in subconfig_names:
-        subconfig = dict(config[name])
-        subconfig["add-elements"] = subconfig["add-elements"].split(",")
-        subconfig["elements"] = subconfig["elements"].split(",")
-        subconfigs.append(subconfig)
-    return subconfigs
-
-
-subconfigs = process_subconfigs(config, subconfig_names)
-
-WANDB_CORE, WANDB_DATATYPES, WANDB_API, WANDB_INTEGRATIONS = subconfigs
-
-
 def build(commit_id, code_url_prefix, output_dir):
     """Builds docs in stages: main library, then subcomponents."""
     configure_doc_hiding()
 
-    # each of these operates by changing the __all__
-    #  attribute of the wandb module, populating it with
-    #  the relevant objects and then generating docs.
+    subconfigs = process_subconfigs(config, subconfig_names)
 
-    build_library_docs(commit_id, code_url_prefix, output_dir)
-    build_datatype_docs(commit_id, code_url_prefix, output_dir)
-    build_api_docs(commit_id, code_url_prefix, output_dir)
-    build_integration_docs(commit_id, code_url_prefix, output_dir)
+    WANDB_CORE, WANDB_DATATYPES, WANDB_API, WANDB_INTEGRATIONS = subconfigs
+
+    output_dir = os.path.join(output_dir, DIRNAME)
+    build_docs_from_config(WANDB_CORE, commit_id, code_url_prefix, output_dir)
+
+    modules_output_dir = os.path.join(output_dir, LIBRARY_DIRNAME)
+    build_docs_from_config(WANDB_DATATYPES, commit_id, code_url_prefix, modules_output_dir)
+    build_docs_from_config(WANDB_API, commit_id, code_url_prefix, modules_output_dir)
+    build_docs_from_config(WANDB_INTEGRATIONS, commit_id, code_url_prefix, modules_output_dir)
+
+
+def build_docs_from_config(config, commit_id, code_url_prefix, output_dir):
+    """Uses a config to build docs for a specific library component."""
+    handle_additions(config["add-from"], config["add-elements"])
+    wandb.__all__ = config["elements"] + config["add-elements"]
+
+    wandb.__doc__ = get_dunder_doc(config["module-doc-from"])
+
+    build_docs(
+        name_pair=(config["dirname"], wandb),
+        output_dir=output_dir,
+        code_url_prefix=code_url_prefix,
+    )
 
 
 def build_docs(name_pair, output_dir, code_url_prefix):
-    """Builds api docs for W&B.
+    """Builds Python docs for W&B client library.
 
     Args:
         name_pair: Name of the pymodule
@@ -63,95 +66,37 @@ def build_docs(name_pair, output_dir, code_url_prefix):
     doc_generator.build(output_dir)
 
 
-def build_library_docs(commit_id, code_url_prefix, output_dir):
-
-    config = WANDB_CORE
-    handle_additions(config["add-from"], config["add-elements"])
-    wandb.__all__ = config["elements"] + config["add-elements"]
-
-    wandb.__doc__ = """\n"""
-
-    build_docs(
-        name_pair=(config["dirname"], wandb),
-        output_dir=os.path.join(output_dir, DIRNAME),
-        code_url_prefix=code_url_prefix,
-    )
-
-
-def build_datatype_docs(commit_id, code_url_prefix, output_dir):
-
-    config = WANDB_DATATYPES
-    handle_additions(config["add-from"], config["add-elements"])
-    wandb.__all__ = config["elements"] + config["add-elements"]
-
-    # handle_additions("data_types", WANDB_DATATYPES["add-elements"])
-    # wandb.__all__ = WANDB_DATATYPES["elements"] + WANDB_DATATYPES["add-elements"]
-    wandb.__doc__ = """\n"""
-
-    build_docs(
-        name_pair=(config["dirname"], wandb),
-        output_dir=os.path.join(output_dir, DIRNAME, LIBRARY_DIRNAME),
-        code_url_prefix=code_url_prefix,
-    )
-
-
-def build_api_docs(commit_id, code_url_prefix, output_dir):
-
-    # this should be made cleaner
-    #  by either using the __all__ of the api
-    #  or changing the top-level __all__
-
-    config = WANDB_API
-    handle_additions(config["add-from"], config["add-elements"])
-    wandb.__all__ = config["elements"] + config["add-elements"]
-
-    wandb.__doc__ = """
-    Use the Public API to export or update data that you have saved to W&B.
-    Before using this API, you'll want to log data from your script — check the [Quickstart](https://docs.wandb.ai/quickstart) for more details.
-
-    **Use Cases for the Public API**
-
-    * **Export Data**: Pull down a dataframe for custom analysis in a Jupyter Notebook. Once you have explored the data, you can sync your findings by creating a new analysis run and logging results, for example: `wandb.init(job_type="analysis")`
-    * **Update Existing Runs**: You can update the data logged in association with a W&B run. For example, you might want to update the config of a set of runs to include additional information, like the architecture or a hyperparameter that wasn't originally logged.
-
-    See the [Generated Reference Docs](https://docs.wandb.ai/ref) for details on available functions.
-    """
-
-    build_docs(
-        name_pair=(config["dirname"], wandb),
-        output_dir=os.path.join(output_dir, DIRNAME, LIBRARY_DIRNAME),
-        code_url_prefix=code_url_prefix,
-    )
-
-
-def build_integration_docs(commit_id, code_url_prefix, output_dir):
-    config = WANDB_INTEGRATIONS
-    handle_additions(config["add-from"], config["add-elements"])
-    wandb.__all__ = config["elements"] + config["add-elements"]
-
-    wandb.__doc__ = """\n"""
-
-    build_docs(
-        name_pair=(config["dirname"], wandb),
-        output_dir=os.path.join(output_dir, DIRNAME, LIBRARY_DIRNAME),
-        code_url_prefix=code_url_prefix,
-    )
-
-
 def handle_additions(add_from, add_elements):
+    """Adds elements of a submodule of wandb to the top level."""
     if not add_from:
         return
-    module = operator.attrgetter(add_from)(wandb)
+    try:
+        module = operator.attrgetter(add_from)(wandb)
+    except AttributeError:  # if it's not an attribute, assume it needs to be imported
+        module = import_module("." + add_from, "wandb")
+    except ModuleNotFoundError as e:
+        raise(e)
     for element in add_elements:
         setattr(wandb, element, getattr(module, element))
 
 
+def get_dunder_doc(module_doc_from):
+    """Fetches the __doc__ attribute from a module, or passes a default."""
+    if module_doc_from == "":
+        return """\n"""
+    elif module_doc_from == "self":
+        return wandb.__doc__
+    else:
+        doc_getter = operator.attrgetter(module_doc_from + "." + "__doc__")
+        return doc_getter(wandb)
+
+
 def configure_doc_hiding():
+    """Uses doc_controls to hide certain classes and attributes."""
+    deco = doc_controls.do_not_doc_in_subclasses
 
     # avoid documenting internal methods
     #  that are defined in basic datatypes and apis
-
-    deco = doc_controls.do_not_doc_in_subclasses
     base_classes = [
         wandb.data_types.WBValue,
         wandb.data_types.Media,
@@ -168,3 +113,14 @@ def configure_doc_hiding():
     deco = doc_controls.do_not_doc_in_subclasses
     doc_controls.decorate_all_class_attributes(
         decorator=deco, cls=keras.callbacks.Callback, skip=["__init__", "set_model", "set_params"])
+
+
+def process_subconfigs(config, subconfig_names):
+    """Applies some processing logic to config entries."""
+    subconfigs = []
+    for name in subconfig_names:
+        subconfig = dict(config[name])
+        subconfig["add-elements"] = subconfig["add-elements"].split(",")
+        subconfig["elements"] = subconfig["elements"].split(",")
+        subconfigs.append(subconfig)
+    return subconfigs
