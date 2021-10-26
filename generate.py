@@ -43,23 +43,23 @@ def main(args):
             continue
         shutil.rmtree(os.path.join(ref_dir, dirname), ignore_errors=True)
 
-    # Create the library docs
+    # create the library docs
     library.build(commit_id, code_url_prefix, output_dir)
 
     # convert .build output to GitBook format
     rename_to_readme(ref_dir)
 
-    # Create the CLI docs
+    # create the CLI docs
     cli.build(ref_dir)
 
-    # Change Folder with single README to file.md
+    # change folders with single README to file.md
     single_folder_format(ref_dir)
 
     # fill the SUMMARY.md with generated doc files,
     #  based on provided template.
-    populate_summary(ref_dir, template_file, output_dir=output_dir)
+    populate_summary(output_dir, template_file, output_dir=output_dir)
 
-    # clean_names(ref_dir)
+    # clean up the file names
     clean_names(ref_dir)
 
 
@@ -80,10 +80,11 @@ def populate_summary(
         output_dir: str. Directory into which to write the final
             SUMMARY.md file.
     """
-    with open(template_file, "r") as f:
-        doc_structure = f.read()
+    docugen_markdown = walk_docugen("ref", output_dir=Path(docgen_folder), base=Path(docgen_folder))
 
-    docugen_markdown = walk_docugen(docgen_folder)
+    with open(template_file, "r") as f:
+        old_summary = f.readlines()
+    doc_structure = clean_summary(old_summary)
 
     doc_structure = doc_structure.format(docugen=docugen_markdown)
 
@@ -91,29 +92,28 @@ def populate_summary(
         f.write(doc_structure)
 
 
-def walk_docugen(folder: str) -> str:
+def walk_docugen(folder: str, output_dir: Path, base: Path) -> str:
     """Walk a folder and return a markdown-formatted list of markdown files."""
-    docugen_markdowns = []
-    indent = 0
-    for path, dirs, files in os.walk(folder):
-        if any("ref/" + skip in path for skip in SKIPS):
-            continue
-        dirs.sort()
-        files.sort()
-        path = str(Path(path).relative_to(Path(folder).parent))
-        is_subdir = "/" in path
-        if is_subdir:
-            components = path.split("/")
-            indent = len(components) - 1
-            name = components[-1]
-        else:
-            name = path
-        title = convert_name(name)
-        docugen_markdowns.append("  " * indent + f"* [{title}]({path}/README.md)")
+    docugen_markdown = ""
+    folder = os.walk(base / folder)
+    path, dirs, files = next(folder)
+    path = Path(path)
+    relative_path = str(path.relative_to(output_dir))
+    components = relative_path.split("/")
+    indent, name = len(components) - 1, components[-1]
+    title = convert_name(name)
+    if any("ref/" + skip in relative_path for skip in SKIPS):
+        return ""
+    docugen_markdown += "  " * indent + f"* [{title}]({relative_path}/README.md)\n"
 
-        docugen_markdowns.extend(add_files(files, path, indent))
+    dirs.sort(), files.sort()
+    for dir in dirs:
+        docugen_markdown += walk_docugen(dir, output_dir, path)
 
-    docugen_markdown = "\n".join(docugen_markdowns)
+    docugen_markdown += add_files(files, relative_path, indent)
+
+    if not docugen_markdown.endswith("\n"):
+        docugen_markdown += "\n"
 
     return docugen_markdown
 
@@ -133,7 +133,8 @@ def add_files(files: list, root: str, indent: int) -> list:
         )
         file_markdowns.append(file_markdown)
 
-    return file_markdowns
+    files_markdown = "\n".join(file_markdowns)
+    return files_markdown
 
 
 def get_prefix(path):
@@ -143,7 +144,6 @@ def get_prefix(path):
         return "wandb.data\_types."  # noqa
     elif "public-api" in path:
         return "wandb.apis.public."
-
     elif "integrations" in path:
         package_name = path.split("/")[-1]
         return f"wandb.{package_name}."
@@ -225,6 +225,29 @@ def filter_files(directory, files_to_remove):
                 os.remove(os.path.join(f"{root}", f"{file_name}"))
 
 
+def clean_summary(summary_contents):
+    output, fstring_added = [], False
+    for line in summary_contents:
+        if is_retained(line):
+            output.append(line)
+        else:
+            if not fstring_added:
+                output.append("{docugen}")
+                fstring_added = True
+
+    return "".join(output)
+
+
+def is_retained(line):
+    if "ref/" not in line:
+        return True
+    else:
+        if any([skip in line for skip in SKIPS]):
+            return True
+        else:
+            return False
+
+
 def get_args():
     parser = argparse.ArgumentParser(
         description="Generate documentation for the wandb library and CLI."
@@ -280,7 +303,7 @@ def check_commit_id(commit_id):
         wandb_version = f"v{wandb.__version__}"
         assert (
             wandb_version == commit_id
-        ), f"git version does not match wandb version {wandb_version}"
+        ), f"git version {commit_id} does not match wandb version {wandb_version}"
     else:
         # commit_id is a git hash
         commit_id_len = len(commit_id)
