@@ -66,7 +66,7 @@ def main(args):
 def populate_summary(
     docgen_folder: str, template_file: str = "_SUMMARY.md", output_dir: str = "."
 ) -> None:
-    """Populates SUMMARY.md field describing gitbook sidebar.
+    """Populates SUMMARY.md file describing gitbook sidebar.
 
     GitBook uses a `SUMMARY.md` file to determine which
     files to show in the sidebar. When using docugen,
@@ -94,24 +94,25 @@ def populate_summary(
 
 def walk_docugen(folder: str, output_dir: Path, base: Path) -> str:
     """Walk a folder and return a markdown-formatted list of markdown files."""
-    docugen_markdown = ""
-    folder = os.walk(base / folder)
-    path, dirs, files = next(folder)
-    path = Path(path)
-    relative_path = str(path.relative_to(output_dir))
-    components = relative_path.split("/")
-    indent, name = len(components) - 1, components[-1]
-    title = convert_name(name)
-    if any("ref/" + skip in relative_path for skip in SKIPS):
-        return ""
-    docugen_markdown += "  " * indent + f"* [{title}]({relative_path}/README.md)\n"
+    path, dirs, files = next(os.walk(base / folder))
+    dirs.sort(), files.sort()  # ensure alphabetical order for directories and files
 
-    dirs.sort(), files.sort()
+    if any("ref/" + skip in path for skip in SKIPS):  # apply skipping of directories
+        return ""
+
+    # extract title information
+    path = Path(path)
+    indent, title, relative_path  = get_info_markdown_path(path, output_dir)
+    docugen_markdown = "  " * indent + f"* [{title}]({relative_path}/README.md)\n"
+
+    # recursively generate markdown from sub-directories
     for dir in dirs:
         docugen_markdown += walk_docugen(dir, output_dir, path)
 
+    # add files from this directory
     docugen_markdown += add_files(files, relative_path, indent)
 
+    # if needed, add in a final newline
     if not docugen_markdown.endswith("\n"):
         docugen_markdown += "\n"
 
@@ -223,6 +224,14 @@ def filter_files(directory, files_to_remove):
         for file_name in file_names:
             if file_name in files_to_remove:
                 os.remove(os.path.join(f"{root}", f"{file_name}"))
+
+
+def get_info_markdown_path(path, output_dir):
+    relative_path = str(path.relative_to(output_dir))
+    components = relative_path.split("/")
+    indent, name = len(components) - 1, components[-1]
+    title = convert_name(name)
+    return indent, title, relative_path
 
 
 def clean_summary(summary_contents):
