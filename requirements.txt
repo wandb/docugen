@@ -1,13 +1,7 @@
+-r docugen/requirements.txt
+
 wandb
-astor
 dataclasses
 
 # for integrations
 tensorflow
-sacred
-sklearn
-sagemaker
-gym
-lightgbm
-numpy
-pandas
