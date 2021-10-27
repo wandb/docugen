@@ -1,6 +1,5 @@
 -r docugen/requirements.txt
 
-wandb
 dataclasses
 
 # for integrations
