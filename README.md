@@ -21,7 +21,7 @@ based on the
 1. Run `pip install --upgrade git+git://github.com/wandb/client.git@<commit_id>`
 to install the version of`wandb` you wish to document.
 2. Run `python generate.py --commit_id <commit_id>` to create the documentation.
-Make sure to use the entire hash, not just a prefix -- it's used to create URLs.
+Make sure to use a full hash or tag -- it's used to create URLs.
 3. Move the generated documentation into a local copy of
 [the repository for the GitBook](https://www.github.com/).
 
@@ -38,12 +38,6 @@ any contents inside the `cli` or `python` directory will be over-written.
 that indexes the automatically-generated docs.
 This is based on a provided `--template_file`
 \(by default, `_SUMMARY.md` from this repo\).
-When generating a new version of the docs,
-you'll want to create a new template based on
-the most recent version of the GitBook repo's `SUMMARY.md`
-To create a template, just remove the lines of `SUMMARY.md`
-corresponding to automatically-generated
-markdown files and put in their place one line reading `{docugen}`.
 
 ### Example Usage
 
