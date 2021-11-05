@@ -1,52 +1,63 @@
+import configparser
+from importlib import import_module
+import operator
 import os
-from docugen import doc_controls
-from docugen import generate
+
 import wandb
 
-import configparser
+from docugen import doc_controls
+from docugen import generate
+
+import util
+
 config = configparser.ConfigParser()
-config.read('config.ini')
+config.read("config.ini")
 
 DIRNAME = config["GLOBAL"]["DIRNAME"]
-LIBRARY_DIRNAME = config["GLOBAL"]["LIBRARY_DIRNAME"]
-WANDB_DATATYPES = config["WANDB_DATATYPES"]["elements"].split(",")
-WANDB_API = config["WANDB_API"]["elements"].split(",")
-WANDB_INTEGRATIONS = config["WANDB_INTEGRATIONS"]["elements"].split(",")
+LIBRARY_DIRNAME = config["WANDB_CORE"]["dirname"]
 
-# later, we'll decide which parts of the sdk we're documenting
-WANDB_DOCLIST = []
+subconfig_names = config["SUBCONFIGS"]["names"].split(",")
+
+subconfigs = util.process_subconfigs(config, subconfig_names)
+
+WANDB_CORE, WANDB_DATATYPES, WANDB_API, WANDB_INTEGRATIONS = subconfigs
 
 
 def build(commit_id, code_url_prefix, output_dir):
-    """Builds docs in three stages: library, data types, and API.
-
-    For now, this involves a lot of special-casing.
-    """
-
+    """Builds docs in stages: main library, then subcomponents."""
     configure_doc_hiding()
 
-    # each of these operates by changing the __all__
-    #  attribute of the wandb module, populating it with
-    #  the relevant objects and then generating docs.
+    output_dir = os.path.join(output_dir, DIRNAME)
+    build_docs_from_config(WANDB_CORE, commit_id, code_url_prefix, output_dir)
 
-    build_library_docs(commit_id, code_url_prefix, output_dir)
-    build_datatype_docs(commit_id, code_url_prefix, output_dir)
-    build_api_docs(commit_id, code_url_prefix, output_dir)
-    build_integration_docs(commit_id, code_url_prefix, output_dir)
+    modules_output_dir = os.path.join(output_dir, LIBRARY_DIRNAME)
+    build_docs_from_config(WANDB_DATATYPES, commit_id, code_url_prefix, modules_output_dir)
+    build_docs_from_config(WANDB_API, commit_id, code_url_prefix, modules_output_dir)
+    build_docs_from_config(WANDB_INTEGRATIONS, commit_id, code_url_prefix, modules_output_dir)
+
+
+def build_docs_from_config(config, commit_id, code_url_prefix, output_dir):
+    """Uses a config to build docs for a specific library component."""
+    handle_additions(config["add-from"], config["add-elements"])
+    wandb.__all__ = config["elements"] + config["add-elements"]
+
+    wandb.__doc__ = get_dunder_doc(config["module-doc-from"])
+
+    build_docs(
+        name_pair=(config["dirname"], wandb),
+        output_dir=output_dir,
+        code_url_prefix=code_url_prefix,
+    )
 
 
 def build_docs(name_pair, output_dir, code_url_prefix):
-    """Build api docs for W&B.
+    """Builds Python docs for W&B client library.
 
     Args:
         name_pair: Name of the pymodule
         output_dir: A string path, where to put the files.
         code_url_prefix: prefix for "Defined in" links.
-        search_hints: Bool. Include meta-data search hints at the top of each file.
-        gen_report: Bool. Generates an API report containing the health of the
-            docstrings of the public API.
     """
-
     doc_generator = generate.DocGenerator(
         root_title="W&B",
         py_modules=[name_pair],
@@ -57,128 +68,37 @@ def build_docs(name_pair, output_dir, code_url_prefix):
     doc_generator.build(output_dir)
 
 
-def build_library_docs(commit_id, code_url_prefix, output_dir):
-    # we start from the current __all__ attribute
-    doclist = wandb.__all__
-
-    # the datatypes are included at the top level,
-    #  but maybe should not be?
-    doclist = [elem for elem in doclist if elem not in WANDB_DATATYPES]
-
-    # some parts of the Api are included at the top level,
-    #  but maybe should not be?
-    doclist = [elem for elem in doclist if elem not in WANDB_API]
-
-    # add back in Artifact, which is also an object in the API
-    doclist.append("Artifact")
-
-    # the "Run" object is not included at the top level,
-    #  but maybe it should be?
-    #  instead, there's a lower-case .run at the top level
-    #  also needs to be added back, since there's a Run in the API
-    wandb.Run = wandb.wandb_sdk.wandb_run.Run
-    doclist.extend(["Run"])
-
-    # for now, remove .join and document .finish
-    doclist.extend(["finish"])
-    doclist = [elem for elem in doclist if elem != "join"]
-
-    # remove .setup as it is not public
-    doclist = [elem for elem in doclist if elem != "setup"]
-
-    # adding `wandb.watch` to the doclist. The idea behind
-    # adding watch to the parent docs and not integration
-    # is that watch does not have a submodule namespace.
-    doclist.extend(["watch"])
-
-    WANDB_DOCLIST.extend(doclist)
-
-    wandb.__all__ = doclist
-    wandb.__doc__ = """\n"""
-
-    build_docs(
-        name_pair=(LIBRARY_DIRNAME, wandb),
-        output_dir=os.path.join(output_dir, DIRNAME),
-        code_url_prefix=code_url_prefix,
-    )
+def handle_additions(add_from, add_elements):
+    """Adds elements of a submodule of wandb to the top level."""
+    if not add_from:
+        return
+    try:
+        module = operator.attrgetter(add_from)(wandb)
+    except AttributeError:  # if it's not an attribute, assume it needs to be imported
+        module = import_module("." + add_from, "wandb")
+    except ModuleNotFoundError as e:
+        raise(e)
+    for element in add_elements:
+        setattr(wandb, element, getattr(module, element))
 
 
-def build_datatype_docs(commit_id, code_url_prefix, output_dir):
-
-    wandb.__all__ = WANDB_DATATYPES
-    wandb.BoundingBoxes2D = wandb.data_types.BoundingBoxes2D
-    wandb.ImageMask = wandb.data_types.ImageMask
-    wandb.__doc__ = """\n"""
-
-    build_docs(
-        name_pair=("data-types", wandb),
-        output_dir=os.path.join(output_dir, DIRNAME, LIBRARY_DIRNAME),
-        code_url_prefix=code_url_prefix,
-    )
-
-
-def build_api_docs(commit_id, code_url_prefix, output_dir):
-
-    # this should be made cleaner
-    #  by either using the __all__ of the api
-    #  or changing the top-level __all__
-
-    wandb.Api = wandb.apis.public.Api
-    wandb.Projects = wandb.apis.public.Projects
-    wandb.Project = wandb.apis.public.Project
-    wandb.Runs = wandb.apis.public.Runs
-    wandb.Run = wandb.apis.public.Run
-    wandb.Sweep = wandb.apis.public.Sweep
-    wandb.Files = wandb.apis.public.Files
-    wandb.File = wandb.apis.public.File
-    wandb.Artifact = wandb.apis.public.Artifact
-
-    wandb.__all__ = WANDB_API
-    wandb.__doc__ = """
-    Use the Public API to export or update data that you have saved to W&B.
-    Before using this API, you'll want to log data from your script — check the [Quickstart](https://docs.wandb.ai/quickstart) for more details.
-
-    **Use Cases for the Public API**
-
-    * **Export Data**: Pull down a dataframe for custom analysis in a Jupyter Notebook. Once you have explored the data, you can sync your findings by creating a new analysis run and logging results, for example: `wandb.init(job_type="analysis")`
-    * **Update Existing Runs**: You can update the data logged in association with a W&B run. For example, you might want to update the config of a set of runs to include additional information, like the architecture or a hyperparameter that wasn't originally logged.
-
-    See the [Generated Reference Docs](https://docs.wandb.ai/ref) for details on available functions.
-    """
-
-    build_docs(
-        name_pair=("public-api", wandb),
-        output_dir=os.path.join(output_dir, DIRNAME, LIBRARY_DIRNAME),
-        code_url_prefix=code_url_prefix,
-    )
-
-
-def build_integration_docs(commit_id, code_url_prefix, output_dir):
-    # from wandb.integration import torch
-    # from wandb.integration import sagemaker
-    # from wandb.integration import fastai
-    # wandb.torch = torch
-    # wandb.sagemaker = sagemaker
-    # wandb.fastai = fastai
-    from wandb.integration import keras as wandb_keras
-    wandb.keras = wandb_keras
-
-    wandb.__all__ = WANDB_INTEGRATIONS
-    wandb.__doc__ = """\n"""
-
-    build_docs(
-        name_pair=("integrations", wandb),
-        output_dir=os.path.join(output_dir, DIRNAME, LIBRARY_DIRNAME),
-        code_url_prefix=code_url_prefix,
-    )
+def get_dunder_doc(module_doc_from):
+    """Fetches the __doc__ attribute from a module, or passes a default."""
+    if module_doc_from == "":
+        return """\n"""
+    elif module_doc_from == "self":
+        return wandb.__doc__
+    else:
+        doc_getter = operator.attrgetter(module_doc_from + "." + "__doc__")
+        return doc_getter(wandb)
 
 
 def configure_doc_hiding():
+    """Uses doc_controls to hide certain classes and attributes."""
+    deco = doc_controls.do_not_doc_in_subclasses
 
     # avoid documenting internal methods
     #  that are defined in basic datatypes and apis
-
-    deco = doc_controls.do_not_doc_in_subclasses
     base_classes = [
         wandb.data_types.WBValue,
         wandb.data_types.Media,
@@ -191,7 +111,6 @@ def configure_doc_hiding():
             decorator=deco, cls=cls, skip=["__init__"]
         )
 
-    # For keras
     from tensorflow import keras
     deco = doc_controls.do_not_doc_in_subclasses
     doc_controls.decorate_all_class_attributes(

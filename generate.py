@@ -1,5 +1,6 @@
-"""A tool to generate reference documentation for the
-Weights & Biases client library and for the wandb CLI tool.
+"""Generate reference documentation for Weights & Biases.
+
+Creates docs for the Weights & Biases client library and for the wandb CLI tool.
 
 For help, run:
 
@@ -16,6 +17,8 @@ import wandb
 import cli
 import library
 
+import util
+
 
 config = configparser.ConfigParser()
 config.read("config.ini")
@@ -23,6 +26,12 @@ config.read("config.ini")
 DIRNAME = config["GLOBAL"]["DIRNAME"]
 DIRNAMES_TO_TITLES = config["DIRNAMES_TO_TITLES"]
 SKIPS = config["SKIPS"]["elements"].split(",")
+
+subconfig_names = config["SUBCONFIGS"]["names"].split(",")
+
+subconfigs = util.process_subconfigs(config, subconfig_names)
+
+WANDB_CORE, WANDB_DATATYPES, WANDB_API, WANDB_INTEGRATIONS = subconfigs
 
 
 def main(args):
@@ -42,31 +51,30 @@ def main(args):
             continue
         shutil.rmtree(os.path.join(ref_dir, dirname), ignore_errors=True)
 
-    # Create the library docs
+    # create the library docs
     library.build(commit_id, code_url_prefix, output_dir)
 
     # convert .build output to GitBook format
     rename_to_readme(ref_dir)
 
-    # Create the CLI docs
+    # create the CLI docs
     cli.build(ref_dir)
 
-    # Change Folder with single README to file.md
+    # change folders with single README to file.md
     single_folder_format(ref_dir)
 
     # fill the SUMMARY.md with generated doc files,
     #  based on provided template.
-    populate_summary(ref_dir, template_file, output_dir=output_dir)
+    populate_summary(output_dir, template_file, output_dir=output_dir)
 
-    # clean_names(ref_dir)
+    # clean up the file names
     clean_names(ref_dir)
 
 
 def populate_summary(
     docgen_folder: str, template_file: str = "_SUMMARY.md", output_dir: str = "."
 ) -> None:
-    """Populates the output file with generated file names
-    by filling in the template_file at the {docugen} location.
+    """Populates SUMMARY.md file describing gitbook sidebar.
 
     GitBook uses a `SUMMARY.md` file to determine which
     files to show in the sidebar. When using docugen,
@@ -80,11 +88,11 @@ def populate_summary(
         output_dir: str. Directory into which to write the final
             SUMMARY.md file.
     """
+    docugen_markdown = walk_docugen("ref", output_dir=Path(docgen_folder), base=Path(docgen_folder))
 
     with open(template_file, "r") as f:
-        doc_structure = f.read()
-
-    docugen_markdown = walk_docugen(docgen_folder)
+        old_summary = f.readlines()
+    doc_structure = clean_summary(old_summary)
 
     doc_structure = doc_structure.format(docugen=docugen_markdown)
 
@@ -92,33 +100,29 @@ def populate_summary(
         f.write(doc_structure)
 
 
-def walk_docugen(folder: str) -> str:
-    """Walks a folder, pulls out all of the markdown files,
-    formats their names into markdown strings with appropriate links
-    and formatting for a GitBook SUMMARY.md, then returns that block of markdown.
-    """
+def walk_docugen(folder: str, output_dir: Path, base: Path) -> str:
+    """Walk a folder and return a markdown-formatted list of markdown files."""
+    path, dirs, files = next(os.walk(base / folder))
+    dirs.sort(), files.sort()  # ensure alphabetical order for directories and files
 
-    docugen_markdowns = []
-    indent = 0
-    for path, dirs, files in os.walk(folder):
-        if any("ref/" + skip in path for skip in SKIPS):
-            continue
-        dirs.sort()
-        files.sort()
-        path = str(Path(path).relative_to(Path(folder).parent))
-        is_subdir = "/" in path
-        if is_subdir:
-            components = path.split("/")
-            indent = len(components) - 1
-            name = components[-1]
-        else:
-            name = path
-        title = convert_name(name)
-        docugen_markdowns.append("  " * indent + f"* [{title}]({path}/README.md)")
+    if any("ref/" + skip in path for skip in SKIPS):  # apply skipping of directories
+        return ""
 
-        docugen_markdowns.extend(add_files(files, path, indent))
+    # extract title information
+    path = Path(path)
+    indent, title, relative_path = get_info_markdown_path(path, output_dir)
+    docugen_markdown = "  " * indent + f"* [{title}]({relative_path}/README.md)\n"
 
-    docugen_markdown = "\n".join(docugen_markdowns)
+    # recursively generate markdown from sub-directories
+    for dir in dirs:
+        docugen_markdown += walk_docugen(dir, output_dir, path)
+
+    # add files from this directory
+    docugen_markdown += add_files(files, relative_path, indent)
+
+    # if needed, add in a final newline
+    if not docugen_markdown.endswith("\n"):
+        docugen_markdown += "\n"
 
     return docugen_markdown
 
@@ -138,22 +142,25 @@ def add_files(files: list, root: str, indent: int) -> list:
         )
         file_markdowns.append(file_markdown)
 
-    return file_markdowns
+    files_markdown = "\n".join(file_markdowns)
+    return files_markdown
 
 
 def get_prefix(path):
     if path == DIRNAME:
         return [], ""
     elif "data-types" in path:
-        return "wandb.data\_types."  # noqa
+        return WANDB_DATATYPES["slug"]
     elif "public-api" in path:
-        return "wandb.apis.public."
-
+        return WANDB_API["slug"]
     elif "integrations" in path:
+        starter_slug = WANDB_INTEGRATIONS["slug"]
         package_name = path.split("/")[-1]
-        return f"wandb.{package_name}."
+        if package_name == "integrations":
+            package_name = "sdk.integration_utils.data_logging"
+        return f"{starter_slug}{package_name}."
     elif "python" in path:
-        return "wandb."
+        return WANDB_CORE["slug"]
     elif "java" or "app" in path:
         return ""
     else:
@@ -170,9 +177,7 @@ def convert_name(name):
 
 
 def rename_to_readme(directory):
-    """Moves all the folder-level markdown files into
-    their respective folders, as a README."""
-
+    """Moves all the folder-level markdown files into their respective folders, as a README."""
     for root, folders, file_names in os.walk(directory):
         for file_name in file_names:
             raw_file_name, suffix = file_name[:-3], file_name[-3:]
@@ -184,7 +189,7 @@ def rename_to_readme(directory):
 
 
 def clean_names(directory):
-    """Converts names to lower case and removes spaces"""
+    """Converts names to lower case and removes spaces."""
     for root, folders, file_names in os.walk(directory):
         for name in file_names:
             if name == "README.md":
@@ -198,17 +203,17 @@ def clean_names(directory):
 
 
 def single_folder_format(directory):
-    """
-    Convert single file folders to single files.
+    """Converts all sub-folders that only contain README.md to single files, as expected by GitBook.
 
-    This is done to combat the huge differences generated
-    by GitBook.
-    eg.
-    - folder
-        - README.md
+    So the tree:
+        - folder
+            - README.md
 
     changes to
-    - folder.md
+        - folder.md
+
+    Args:
+        directory: str. The directory to walk through.
     """
     for root, folders, file_names in os.walk(directory):
         number_of_folders = len(folders)
@@ -232,6 +237,37 @@ def filter_files(directory, files_to_remove):
                 os.remove(os.path.join(f"{root}", f"{file_name}"))
 
 
+def get_info_markdown_path(path, output_dir):
+    relative_path = str(path.relative_to(output_dir))
+    components = relative_path.split("/")
+    indent, name = len(components) - 1, components[-1]
+    title = convert_name(name)
+    return indent, title, relative_path
+
+
+def clean_summary(summary_contents):
+    output, fstring_added = [], False
+    for line in summary_contents:
+        if is_retained(line):
+            output.append(line)
+        else:
+            if not fstring_added:
+                output.append("{docugen}")
+                fstring_added = True
+
+    return "".join(output)
+
+
+def is_retained(line):
+    if "ref/" not in line:
+        return True
+    else:
+        if any([skip in line for skip in SKIPS]):
+            return True
+        else:
+            return False
+
+
 def get_args():
     parser = argparse.ArgumentParser(
         description="Generate documentation for the wandb library and CLI."
@@ -250,7 +286,7 @@ def get_args():
         "--template_file",
         type=str,
         default="_SUMMARY.md",
-        help="Template markdown file with {docugen} where filenames to be written. "
+        help="Template markdown file for table of contents. "
         + "Defaults to ./_SUMMARY.md",
     )
     parser.add_argument(
@@ -277,19 +313,17 @@ def get_args():
 
 
 def check_commit_id(commit_id):
-    """
-    Checks for a valid commit id.
+    """Checks for a valid commit id.
 
     Args:
         commit_id: The commit id provided
     """
-
     if "." in commit_id:
         # commit_id is a version
         wandb_version = f"v{wandb.__version__}"
         assert (
             wandb_version == commit_id
-        ), f"git version does not match wandb version {wandb_version}"
+        ), f"git version {commit_id} does not match wandb version {wandb_version}"
     else:
         # commit_id is a git hash
         commit_id_len = len(commit_id)
