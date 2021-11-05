@@ -51,3 +51,57 @@ python generate.py \
 ### Requirements
 
 Run `pip install -r docugen/requirements.txt` from root to install requirements.
+
+## Extension and `config`uration
+
+Behavior is configured by the `config.ini` file,
+which is loaded using `ConfigParser`.
+
+To extend the footprint of the library that is documented,
+this file must be edited.
+
+There's a rough dummy/documentary example in `config.ini`, the `EXAMPLE_SUBCONFIG`.
+
+**If the newly-documented components are in the top level of a module that is already being documented**,
+e.g. if a method is added to the top-level `wandb` or if a new `data_type` is added to `wandb.data_types`,
+then add the `elements` to document to either `elements` or `add-elements` in the proper `SUBCONFIG`.
+
+For example, if we added `launch` as a method available at `wandb.launch` and wanted to document it
+at the top level (alongside e.g. `wandb.watch`), we'd add it to the `elements` of the `WANDB_CORE` subconfig.
+
+As another example, if we added `PanopticSegmentation` to the `wandb.data_types` submodule,
+but didn't make it available at the top level, we'd add it to the `add-elements` section of the `WANDB_DATATYPES` subconfig.
+
+Editing on top of [the state at commit `7ab1d97`](https://github.com/wandb/docugen/blob/7ab1d97cb504d502a665464635e3e247bb9859c1/config.ini), the subconfig sections of `config.ini` would look like:
+
+```python
+[WANDB_CORE]
+# main python client
+dirname=python
+title=Python Library
+slug=wandb.
+elements=Artifact,agent,config,controller,finish,init,launch,log,save,summary,sweep,watch,__version__
+add-from=wandb_sdk.wandb_run
+add-elements=Run
+module-doc-from=self
+
+[WANDB_DATATYPES]
+# data types submodule, including media and tables
+dirname=data-types
+title=Data Types
+slug=wandb.data\_types.
+elements=Graph,Image,Plotly,Video,Audio,Table,Html,Object3D,Molecule,Histogram
+add-from=data_types
+add-elements=ImageMask,BoundingBoxes2D,PanopticSegmentation
+module-doc-from=data_types
+```
+
+**If the newly-documented components are not in the top level of a module that is already being documented**,
+then you'll need to add a new section to the reference docs (though it'd be easier just export them at the top level and add them to an existing section!).
+
+You'll need to
+1. Add a new subconfig, a la `WANDB_DATATYPES`
+2. Populate that with all the required tags (see `EXAMPLE_SUBCONFIG`)
+3. Add that subconfig to the `SUB_CONFIGS`
+4. Add handling for the new section to `generate.py`, under `get_prefix`
+5. Add handling for the new section to `library.py`, under `build`. (This last step could probably be easily automated away with some slight changes to the logic there).
