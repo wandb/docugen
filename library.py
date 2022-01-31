@@ -14,8 +14,6 @@ config = configparser.ConfigParser()
 config_path = os.environ.get("DOCUGEN_CONFIG_PATH") or "./config.ini"
 config.read(config_path)
 
-print(config.sections())
-
 DIRNAME = config["GLOBAL"]["DIRNAME"]
 LIBRARY_DIRNAME = config["WANDB_CORE"]["dirname"]
 
