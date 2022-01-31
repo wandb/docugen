@@ -20,21 +20,6 @@ import library
 import util
 
 
-config = configparser.ConfigParser()
-config_path = os.environ.get("DOCUGEN_CONFIG_PATH") or "./config.ini"
-config.read(config_path)
-
-DIRNAME = config["GLOBAL"]["DIRNAME"]
-DIRNAMES_TO_TITLES = config["DIRNAMES_TO_TITLES"]
-SKIPS = config["SKIPS"]["elements"].split(",")
-
-subconfig_names = config["SUBCONFIGS"]["names"].split(",")
-
-subconfigs = util.process_subconfigs(config, subconfig_names)
-
-WANDB_CORE, WANDB_DATATYPES, WANDB_API, WANDB_INTEGRATIONS = subconfigs
-
-
 def main(args):
     commit_id = args.commit_id
 
@@ -46,11 +31,11 @@ def main(args):
 
     code_url_prefix = "/".join([args.repo, "tree", f"{commit_id}", args.prefix])
 
-    ref_dir = os.path.join(output_dir, DIRNAME)
-    for dirname in DIRNAMES_TO_TITLES.keys():
-        if dirname in SKIPS:
+    ref_dir = os.path.join(output_dir, library.DIRNAME)
+    for library.dirname in library.DIRNAMES_TO_TITLES.keys():
+        if library.dirname in library.SKIPS:
             continue
-        shutil.rmtree(os.path.join(ref_dir, dirname), ignore_errors=True)
+        shutil.rmtree(os.path.join(ref_dir, library.dirname), ignore_errors=True)
 
     # create the library docs
     library.build(commit_id, code_url_prefix, output_dir)
@@ -106,7 +91,7 @@ def walk_docugen(folder: str, output_dir: Path, base: Path) -> str:
     path, dirs, files = next(os.walk(base / folder))
     dirs.sort(), files.sort()  # ensure alphabetical order for directories and files
 
-    if any("ref/" + skip in path for skip in SKIPS):  # apply skipping of directories
+    if any("ref/" + skip in path for skip in library.SKIPS):  # apply skipping of directories
         return ""
 
     # extract title information
@@ -148,20 +133,20 @@ def add_files(files: list, root: str, indent: int) -> list:
 
 
 def get_prefix(path):
-    if path == DIRNAME:
+    if path == library.DIRNAME:
         return [], ""
     elif "data-types" in path:
-        return WANDB_DATATYPES["slug"]
+        return library.WANDB_DATATYPES["slug"]
     elif "public-api" in path:
-        return WANDB_API["slug"]
+        return library.WANDB_API["slug"]
     elif "integrations" in path:
-        starter_slug = WANDB_INTEGRATIONS["slug"]
+        starter_slug = library.WANDB_INTEGRATIONS["slug"]
         package_name = path.split("/")[-1]
         if package_name == "integrations":
             package_name = "sdk.integration_utils.data_logging"
         return f"{starter_slug}{package_name}."
     elif "python" in path:
-        return WANDB_CORE["slug"]
+        return library.WANDB_CORE["slug"]
     elif "java" or "app" in path:
         return ""
     else:
@@ -169,8 +154,8 @@ def get_prefix(path):
 
 
 def convert_name(name):
-    if name in DIRNAMES_TO_TITLES.keys():
-        name = DIRNAMES_TO_TITLES[name]
+    if name in library.DIRNAMES_TO_TITLES.keys():
+        name = library.DIRNAMES_TO_TITLES[name]
 
     name = name.replace("-", " ")
 
@@ -263,7 +248,7 @@ def is_retained(line):
     if "ref/" not in line:
         return True
     else:
-        if any([skip in line for skip in SKIPS]):
+        if any([skip in line for skip in library.SKIPS]):
             return True
         else:
             return False
@@ -307,7 +292,7 @@ def get_args():
         "--output_dir",
         type=str,
         default=os.getcwd(),
-        help=f"Folder into which to place folder {DIRNAME}/ containing results. "
+        help=f"Folder into which to place folder {library.DIRNAME}/ containing results. "
         + "Defaults to current directory.",
     )
     return parser.parse_args()
