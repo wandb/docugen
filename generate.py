@@ -318,7 +318,12 @@ def check_commit_id(commit_id):
     Args:
         commit_id: The commit id provided
     """
-    if "." in commit_id:
+    if commit_id == "latest":
+        # using latest version instead of a commit id -- this should work as long as
+        # we aren't hosting legacy doc versions -- if we do, we'll need to go back
+        # to passing an actual id
+        pass
+    elif "." in commit_id:
         # commit_id is a version
         wandb_version = f"v{wandb.__version__}"
         assert (
