@@ -11,13 +11,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    # # setup: checkout docugen tool and docs from github
-    # - name: checkout docugen repo
-    #   uses: actions/checkout@v2
-    #   with:
-    #     repository: wandb/docugen
-    #     path: documentation/docugen
-    #     token: ${{ inputs.access-token }}
     - name: checkout gitbook repo
       uses: actions/checkout@v2
       with:
@@ -34,7 +27,7 @@ runs:
       shell: bash
       env:
         VERSION: latest
-      run: python -m pip install -r ./docugen/requirements.txt git+https://github.com/wandb/client.git@$VERSION
+      run: python -m pip install -r ./requirements.txt git+https://github.com/wandb/client.git@$VERSION
 
     # generate the docs from the latest client library and overwrite gitbook contents
     - name: generate documentation
