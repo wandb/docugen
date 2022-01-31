@@ -11,18 +11,18 @@ inputs:
 runs:
   using: "composite"
   steps:
-    # setup: checkout docugen tool and docs from github
-    - name: checkout docugen repo
-      uses: actions/checkout@v2
-      with:
-        repository: wandb/docugen
-        path: documentation/docugen
-        token: ${{ inputs.access-token }}
+    # # setup: checkout docugen tool and docs from github
+    # - name: checkout docugen repo
+    #   uses: actions/checkout@v2
+    #   with:
+    #     repository: wandb/docugen
+    #     path: documentation/docugen
+    #     token: ${{ inputs.access-token }}
     - name: checkout gitbook repo
       uses: actions/checkout@v2
       with:
         repository: wandb/gitbook
-        path: documentation/gitbook
+        path: repos/gitbook
         ref: ${{ inputs.gitbook-branch }}
         token: ${{ inputs.access-token }}
     # setup: bring in python plus the requirements for generating docs and the new release
@@ -34,24 +34,23 @@ runs:
       shell: bash
       env:
         VERSION: latest
-      run: python -m pip install -r ./documentation/docugen/requirements.txt git+https://github.com/wandb/client.git@$VERSION
+      run: python -m pip install -r ./docugen/requirements.txt git+https://github.com/wandb/client.git@$VERSION
 
     # generate the docs from the latest client library and overwrite gitbook contents
     - name: generate documentation
       shell: bash
-      working-directory: ./documentation/docugen
       env:
         VERSION: latest
-      run: python generate.py --template_file ../gitbook/SUMMARY.md --commit_id $VERSION --output_dir ../gitbook
+      run: python generate.py --template_file ./repos/gitbook/SUMMARY.md --commit_id $VERSION --output_dir ../gitbook
     # for debugging/tracking, display the generated table of contents
     - name: display ToC
       shell: bash
-      run: cat ./documentation/gitbook/SUMMARY.md
+      run: cat ./repos/gitbook/SUMMARY.md
 
     # stage: commit the changes
     - name: commit changes
       shell: bash
-      working-directory: ./documentation/gitbook
+      working-directory: ./repos/gitbook
       run: |
         git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
@@ -61,7 +60,7 @@ runs:
     # deploy: push to the gitbook repository
     - name: push
       shell: bash
-      working-directory: ./documentation/gitbook
+      working-directory: ./repos/gitbook
       run: |
         git remote set-url origin git@github.com:wandb/gitbook.git
         git push

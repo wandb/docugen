@@ -318,24 +318,23 @@ def check_commit_id(commit_id):
     Args:
         commit_id: The commit id provided
     """
-    pass
-    # if commit_id == "latest":
-    #     # using latest version instead of a commit id -- this should work as long as
-    #     # we aren't hosting legacy doc versions -- if we do, we'll need to go back
-    #     # to passing an actual id
-    #     pass
-    # elif "." in commit_id:
-    #     # commit_id is a version
-    #     wandb_version = f"v{wandb.__version__}"
-    #     assert (
-    #         wandb_version == commit_id
-    #     ), f"git version {commit_id} does not match wandb version {wandb_version}"
-    # else:
-    #     # commit_id is a git hash
-    #     commit_id_len = len(commit_id)
-    #     assert (
-    #         commit_id_len == 40
-    #     ), f"git hash must have all 40 characters, was {commit_id}"
+    if commit_id == "latest":
+        # using latest version instead of a commit id -- this should work as long as
+        # we aren't hosting legacy doc versions -- if we do, we'll need to go back
+        # to passing an actual id
+        pass
+    elif "." in commit_id:
+        # commit_id is a version
+        wandb_version = f"v{wandb.__version__}"
+        assert (
+            wandb_version == commit_id
+        ), f"git version {commit_id} does not match wandb version {wandb_version}"
+    else:
+        # commit_id is a git hash
+        commit_id_len = len(commit_id)
+        assert (
+            commit_id_len == 40
+        ), f"git hash must have all 40 characters, was {commit_id}"
 
 
 if __name__ == "__main__":
