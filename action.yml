@@ -5,11 +5,8 @@ inputs:
     description: "Which branch of wandb/gitbook to update"
     required: true
     default: "en"
-  gitbook-ssh-passphrase:
-    description: "SSH passphrase to use when pushing to gitbook repo"
-    required: true
-  gitbook-ssh-private-key:
-    description: "SSH private key to use when pushing to gitbook repo."
+  access-token:
+    description: "Personal access token to use when checking out repos"
     required: true
 runs:
   using: "composite"
@@ -20,14 +17,14 @@ runs:
       with:
         repository: wandb/docugen
         path: documentation/docugen
-        persist-credentials: false
+        token: ${{ inputs.access-token }}
     - name: checkout gitbook repo
       uses: actions/checkout@v2
       with:
         repository: wandb/gitbook
         path: documentation/gitbook
         ref: ${{ inputs.gitbook-branch }}
-        persist-credentials: false
+        token: ${{ inputs.access-token }}
     # setup: bring in python plus the requirements for generating docs and the new release
     - name: setup python
       uses: actions/setup-python@v2
@@ -50,26 +47,6 @@ runs:
     - name: display ToC
       shell: bash
       run: cat ./documentation/gitbook/SUMMARY.md
-
-    # authenticate machine user via SSH
-    - name: SSH authentication
-      shell: bash
-      env:
-        SSH_PASSPHRASE: ${{ inputs.gitbook-ssh-passphrase }}
-        SSH_PRIVATE_KEY: ${{ inputs.gitbook-ssh-private-key }}
-      run: |
-        # create an agent pointing at the shared socket > hiding output
-        ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-        # put the passphrase > into a file && make it executable
-        echo 'echo $SSH_PASSPHRASE' > ~/.ssh_askpass && chmod +x ~/.ssh_askpass
-        # pass the private key | sans carriage returns | to ssh-add, along with the password returned by the file > hiding output
-        echo "$SSH_PRIVATE_KEY" | tr -d '\r' | DISPLAY=NONE SSH_ASKPASS=~/.ssh_askpass ssh-add - > /dev/null
-        rm ~/.ssh_askpass
-
-    # debug step: print out the added identity
-    - name: print ssh-add identities
-      shell: bash
-      run: ssh-add -l
 
     # stage: commit the changes
     - name: commit changes
