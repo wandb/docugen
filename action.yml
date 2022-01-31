@@ -27,14 +27,14 @@ runs:
       shell: bash
       env:
         VERSION: latest
-      run: pwd && ls . && python -m pip install -r ./requirements.txt git+https://github.com/wandb/client.git@$VERSION
+      run: python -m pip install -r ${{ github.action_path }}/requirements.txt git+https://github.com/wandb/client.git@$VERSION
 
     # generate the docs from the latest client library and overwrite gitbook contents
     - name: generate documentation
       shell: bash
       env:
         VERSION: latest
-      run: python generate.py --template_file ./repos/gitbook/SUMMARY.md --commit_id $VERSION --output_dir ../gitbook
+      run: python ${{ github.action_path }}/generate.py --template_file ./repos/gitbook/SUMMARY.md --commit_id $VERSION --output_dir ./repos/gitbook
     # for debugging/tracking, display the generated table of contents
     - name: display ToC
       shell: bash
