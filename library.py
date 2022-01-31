@@ -12,6 +12,7 @@ import util
 
 config = configparser.ConfigParser()
 config_path = os.environ.get("DOCUGEN_CONFIG_PATH") or "./config.ini"
+print("READING CONFIG FROM: ", config_path)
 config.read(config_path)
 
 DIRNAME = config["GLOBAL"]["DIRNAME"]
