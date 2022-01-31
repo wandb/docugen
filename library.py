@@ -11,7 +11,8 @@ from docugen import generate
 import util
 
 config = configparser.ConfigParser()
-config.read("config.ini")
+config_path = os.environ.get("DOCUGEN_CONFIG_PATH") or "./config.ini"
+config.read(config_path)
 
 DIRNAME = config["GLOBAL"]["DIRNAME"]
 LIBRARY_DIRNAME = config["WANDB_CORE"]["dirname"]
