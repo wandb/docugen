@@ -35,7 +35,7 @@ runs:
       env:
         VERSION: latest
         DOCUGEN_CONFIG_PATH: ${{ github.action_path }}/config.ini
-      run: cat $DOCUGEN_CONFIG_PATH && python ${{ github.action_path }}/generate.py --template_file ./repos/gitbook/SUMMARY.md --commit_id $VERSION --output_dir ./repos/gitbook
+      run: python ${{ github.action_path }}/generate.py --template_file ./repos/gitbook/SUMMARY.md --commit_id $VERSION --output_dir ./repos/gitbook
     # for debugging/tracking, display the generated table of contents
     - name: display ToC
       shell: bash
