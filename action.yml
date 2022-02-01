@@ -27,7 +27,7 @@ runs:
       id: cache
       with:
         path: .cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles(github.action_path + '**/requirements.txt') }}
+        key: ${{ runner.os }}-pip-${{ hashFiles(format('{0}/**/requirements.txt', github.action_path)) }}
         restore-keys: |
           ${{ runner.os }}-pip-${{ hashFiles(github.action_path + '**/requirements.txt') }}
     - name: setup python environment, including wandb client
