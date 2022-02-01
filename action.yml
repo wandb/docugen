@@ -17,6 +17,7 @@ runs:
         repository: wandb/gitbook
         path: repos/gitbook
         ref: ${{ inputs.gitbook-branch }}
+        token: ${{ inputs.access-token }}
     # setup: bring in python plus the requirements for generating docs and the new release
     - name: setup python
       uses: actions/setup-python@v2
