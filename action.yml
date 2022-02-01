@@ -56,5 +56,5 @@ runs:
       shell: bash
       working-directory: ./repos/gitbook
       run: |
-        git remote set-url origin git@github.com:wandb/gitbook.git
+        git remote set-url origin https://${{ inputs.access-token }}@github.com:wandb/gitbook.git
         git push
