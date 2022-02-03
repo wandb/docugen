@@ -56,8 +56,8 @@ runs:
       run: |
         yarn --cwd=repos/core/lib/js/cg --frozen-lockfile
         yarn --cwd=repos/core/lib/js/cg generate-docs
-        mkdir -p repos/gitbook/ref
-        rsync -avR ./repos/core/lib/js/cg/docs_gen/ref/ repos/gitbook/ref/
+        mkdir -p repos/gitbook/ref/weave
+        rsync -avR ./repos/core/lib/js/cg/docs_gen/ ./repos/gitbook/ref/weave
 
     # generate the docs from the client library and overwrite gitbook contents
     - name: generate client documentation
