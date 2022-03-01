@@ -2,9 +2,16 @@ name: "Update docs"
 description: "Generate markdown documentation, commit it to a branch of the gitbook repo, and push it"
 inputs:
   gitbook-branch:
-    description: "Which branch of wandb/gitbook to update"
+    description: "Which branch of wandb/gitbook to update (use 'en' to update the main English docs)"
     required: true
-    default: "en"
+  core-branch:
+    description: "Which branch of wandb/core to use as the source for the docs"
+    required: true
+    default: master
+  client-branch:
+    description: "Which branch of wandb/client to use as the source for the docs"
+    required: true
+    default: latest
   access-token:
     description: "Personal access token to use when checking out repos"
     required: true
@@ -46,15 +53,22 @@ runs:
       shell: bash
       working-directory: ./repos/gitbook
       run: |
+        # hardcoded to the user ID representing the github actions bot, see:
+        # https://github.community/t/github-actions-bot-email-address/17204/6
+        # https://api.github.com/users/github-actions%5Bbot%5D
         git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
-        git add -A .
-        git commit -m "update reference docs to latest CLI"
+        if [[ `git status --porcelain` ]]; then
+          git add -A .
+          git commit -m "update reference docs to cli@${{ inputs.client-branch }}, core@${{ inputs.core-branch }}"
+          git remote set-url origin https://${{ inputs.access-token }}@github.com/wandb/gitbook.git ; \
+          git push ; \
+        else
+          echo "Documentation has not changed; skipping commit/push" ;
+        fi
 
     # deploy: push to the gitbook repository
     - name: push
       shell: bash
       working-directory: ./repos/gitbook
       run: |
-        git remote set-url origin https://${{ inputs.access-token }}@github.com/wandb/gitbook.git
-        git push
