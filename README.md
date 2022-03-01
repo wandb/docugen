@@ -19,25 +19,25 @@ based on the
 ### Steps
 
 1. Run `pip install --upgrade git+git://github.com/wandb/client.git@<commit_id>`
-to install the version of`wandb` you wish to document.
+   to install the version of`wandb` you wish to document.
 2. Run `python generate.py --commit_id <commit_id>` to create the documentation.
-Make sure to use a full hash or tag -- it's used to create URLs.
+   Make sure to use a full hash or tag -- it's used to create URLs.
 3. Move the generated documentation into a local copy of
-[the repository for the GitBook](https://www.github.com/).
+   [the repository for the GitBook](https://www.github.com/).
 
 ### Outputs
 
 1. A folder named `ref`.
-The files in the `ref` folder are the generated markdown.
-Use the `--output_dir` option to change where this folder is saved;
-by default it is in the working directory.
-If the `output_dir` already contains a folder named `ref`,
-any contents inside the `cli` or `python` directory will be over-written.
+   The files in the `ref` folder are the generated markdown.
+   Use the `--output_dir` option to change where this folder is saved;
+   by default it is in the working directory.
+   If the `output_dir` already contains a folder named `ref`,
+   any contents inside the `cli` or `python` directory will be over-written.
 2. A `SUMMARY.md` file for creating a
-[GitBook sidebar](https://docs.gitbook.com/integrations/github/content-configuration#summary)
-that indexes the automatically-generated docs.
-This is based on a provided `--template_file`
-\(by default, `_SUMMARY.md` from this repo\).
+   [GitBook sidebar](https://docs.gitbook.com/integrations/github/content-configuration#summary)
+   that indexes the automatically-generated docs.
+   This is based on a provided `--template_file`
+   \(by default, `_SUMMARY.md` from this repo\).
 
 ### Example Usage
 
@@ -100,8 +100,35 @@ module-doc-from=data_types
 then you'll need to add a new section to the reference docs (though it'd be easier just export them at the top level and add them to an existing section!).
 
 You'll need to
+
 1. Add a new subconfig, a la `WANDB_DATATYPES`
 2. Populate that with all the required tags (see `EXAMPLE_SUBCONFIG`)
 3. Add that subconfig to the `SUB_CONFIGS`
 4. Add handling for the new section to `generate.py`, under `get_prefix`
 5. Add handling for the new section to `library.py`, under `build`. (This last step could probably be easily automated away with some slight changes to the logic there).
+
+## Running as a GitHub Action
+
+In any wandb repo's Actions workflow, you can trigger document generation like so...
+
+```yml
+- uses: wandb/docugen@vX.Y.Z
+  with:
+    gitbook-branch: en
+    access-token: ${{ secrets.DOCUGEN_ACCESS_TOKEN }}
+```
+
+where `vX.Y.Z` is a tag on this (docugen) repo and `DOCUGEN_ACCESS_TOKEN` is a Personal Access Token with org write permissions, stored in the consuming repo. This will generate docs based on the latest releases of all contributing projects and push them to the target branch in the gitbook repo (`en` is the branch used for the main English docs).
+
+### Updating the GitHub Action
+
+After merging your changes to `docugen@main`...
+
+```bash
+git tag -a vX.Y.Z -m "docugen version X.Y.Z"
+git push origin vX.Y.Z
+```
+
+Then you'll need to update the `uses` line in the consuming repo. If we eventually have a lot of repos doing this it might be better to refer to `@main`, to save us the trouble of manually updating all of them (note that if you don't update a repo, it will trigger the old document generation logic, potentially overwriting new docs).
+
+You can test changes to the action on a branch with `uses: wandb/docugen@branch-name` from any other repo.
