@@ -62,6 +62,7 @@ runs:
     - name: generate weave documentation
       shell: bash
       run: |
+        yarn --cwd=./repos/core/lib/js/cg --frozen-lockfile
         yarn --cwd=./repos/core/lib/js/cg generate-docs
         cp -r ./repos/core/lib/js/cg/docs_gen/types/* ./repos/gitbook/ref/weave/types
 
