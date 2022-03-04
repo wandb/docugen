@@ -86,6 +86,7 @@ runs:
           git add -A .
           git commit -m "update reference docs to cli@${{ inputs.client-branch }}, core@${{ inputs.core-branch }}"
           git remote set-url origin https://${{ inputs.access-token }}@github.com/wandb/gitbook.git ; \
+          git pull ; \
           git push ; \
         else
           echo "Documentation has not changed; skipping commit/push" ;
