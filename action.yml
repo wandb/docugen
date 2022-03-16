@@ -65,6 +65,7 @@ runs:
         yarn --cwd=./repos/core/lib/js/cg --frozen-lockfile
         yarn --cwd=./repos/core/lib/js/cg generate-docs
         rm -rf ./repos/gitbook/ref/weave/**
+        mkdir -p ./repos/gitbook/ref/weave
         cp -r ./repos/core/lib/js/cg/docs_gen/* ./repos/gitbook/ref/weave
 
     # for debugging/tracking, display the generated table of contents
