@@ -51,14 +51,6 @@ runs:
         cache: "yarn"
         cache-dependency-path: repos/core/lib/js/cg/yarn.lock
 
-    # generate the docs from the latest client library and overwrite gitbook contents
-    - name: generate client documentation
-      shell: bash
-      env:
-        VERSION: latest
-        DOCUGEN_CONFIG_PATH: ${{ github.action_path }}/config.ini
-      run: python ${{ github.action_path }}/generate.py --template_file ./repos/gitbook/SUMMARY.md --commit_id $VERSION --output_dir ./repos/gitbook
-
     - name: generate weave documentation
       shell: bash
       run: |
@@ -67,6 +59,14 @@ runs:
         rm -rf ./repos/gitbook/ref/weave/**
         mkdir -p ./repos/gitbook/ref/weave
         cp -r ./repos/core/lib/js/cg/docs_gen/* ./repos/gitbook/ref/weave
+
+    # generate the docs from the latest client library and overwrite gitbook contents
+    - name: generate client documentation
+      shell: bash
+      env:
+        VERSION: latest
+        DOCUGEN_CONFIG_PATH: ${{ github.action_path }}/config.ini
+      run: python ${{ github.action_path }}/generate.py --template_file ./repos/gitbook/SUMMARY.md --commit_id $VERSION --output_dir ./repos/gitbook
 
     # for debugging/tracking, display the generated table of contents
     - name: display ToC
