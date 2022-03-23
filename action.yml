@@ -61,7 +61,7 @@ runs:
         cp -r ./repos/core/lib/js/cg/docs_gen/* ./repos/gitbook/ref/weave
 
     # generate the docs from the latest client library and overwrite gitbook contents
-    - name: generate client documentation
+    - name: generate SDK documentation
       shell: bash
       env:
         VERSION: latest
