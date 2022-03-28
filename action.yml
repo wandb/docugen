@@ -56,7 +56,7 @@ runs:
       run: |
         yarn --cwd=./repos/core/lib/js/cg --frozen-lockfile
         yarn --cwd=./repos/core/lib/js/cg generate-docs
-        git rm -rf ./repos/gitbook/ref/weave
+        cd repos/gitbook && git rm -rf ref/weave && cd ../..
         mkdir -p ./repos/gitbook/ref/weave
         cp -r ./repos/core/lib/js/cg/docs_gen/* ./repos/gitbook/ref/weave
 
