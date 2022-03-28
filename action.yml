@@ -36,13 +36,38 @@ runs:
         VERSION: latest
       run: python -m pip install -r ${{ github.action_path }}/requirements.txt git+https://github.com/wandb/client.git@$VERSION
 
+    - name: checkout wandb/core
+      uses: actions/checkout@v2
+      with:
+        repository: wandb/core
+        path: repos/core
+        ref: ${{ inputs.core-branch }}
+        token: ${{ inputs.access-token }}
+
+    - name: setup node
+      uses: actions/setup-node@v2
+      with:
+        node-version: "16"
+        cache: "yarn"
+        cache-dependency-path: repos/core/lib/js/cg/yarn.lock
+
+    - name: generate weave documentation
+      shell: bash
+      run: |
+        yarn --cwd=./repos/core/lib/js/cg --frozen-lockfile
+        yarn --cwd=./repos/core/lib/js/cg generate-docs
+        rm -rf ./repos/gitbook/ref/weave/**
+        mkdir -p ./repos/gitbook/ref/weave
+        cp -r ./repos/core/lib/js/cg/docs_gen/* ./repos/gitbook/ref/weave
+
     # generate the docs from the latest client library and overwrite gitbook contents
-    - name: generate documentation
+    - name: generate SDK documentation
       shell: bash
       env:
         VERSION: latest
         DOCUGEN_CONFIG_PATH: ${{ github.action_path }}/config.ini
       run: python ${{ github.action_path }}/generate.py --template_file ./repos/gitbook/SUMMARY.md --commit_id $VERSION --output_dir ./repos/gitbook
+
     # for debugging/tracking, display the generated table of contents
     - name: display ToC
       shell: bash
@@ -62,6 +87,7 @@ runs:
           git add -A .
           git commit -m "update reference docs to cli@${{ inputs.client-branch }}, core@${{ inputs.core-branch }}"
           git remote set-url origin https://${{ inputs.access-token }}@github.com/wandb/gitbook.git ; \
+          git pull ; \
           git push ; \
         else
           echo "Documentation has not changed; skipping commit/push" ;

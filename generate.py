@@ -33,7 +33,7 @@ def main(args):
 
     ref_dir = os.path.join(output_dir, library.DIRNAME)
     for library.dirname in library.DIRNAMES_TO_TITLES.keys():
-        if library.dirname in library.SKIPS:
+        if library.dirname in library.SKIPS or library.dirname in library.EXTERNAL:
             continue
         shutil.rmtree(os.path.join(ref_dir, library.dirname), ignore_errors=True)
 

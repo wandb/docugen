@@ -18,6 +18,7 @@ DIRNAME = config["GLOBAL"]["DIRNAME"]
 LIBRARY_DIRNAME = config["WANDB_CORE"]["dirname"]
 DIRNAMES_TO_TITLES = config["DIRNAMES_TO_TITLES"]
 SKIPS = config["SKIPS"]["elements"].split(",")
+EXTERNAL = config["EXTERNAL"]["elements"].split(",")
 
 subconfig_names = config["SUBCONFIGS"]["names"].split(",")
 
