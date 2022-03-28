@@ -56,7 +56,7 @@ runs:
       run: |
         yarn --cwd=./repos/core/lib/js/cg --frozen-lockfile
         yarn --cwd=./repos/core/lib/js/cg generate-docs
-        rm -rf ./repos/gitbook/ref/weave/**
+        git rm -rf ./repos/gitbook/ref/weave
         mkdir -p ./repos/gitbook/ref/weave
         cp -r ./repos/core/lib/js/cg/docs_gen/* ./repos/gitbook/ref/weave
 
@@ -82,7 +82,8 @@ runs:
         # https://github.community/t/github-actions-bot-email-address/17204/6
         # https://api.github.com/users/github-actions%5Bbot%5D
         git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-        git config --local user.name "github-actions[bot]"x
+        git config --local user.name "github-actions[bot]"
+        git config --local core.ignorecase false
         if [[ `git status --porcelain` ]]; then
           git add -A .
           git commit -m "update reference docs to cli@${{ inputs.client-branch }}, core@${{ inputs.core-branch }}"
