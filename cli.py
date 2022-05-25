@@ -132,7 +132,7 @@ def parse_help(command: str) -> Tuple[str, str, str]:
     summary = []
     keyword = None  # initializing keyword with None
     parsed_dict = {}  # will hold Options and Commands
-
+    
     help_page = pre_process(help_page)
 
     for line in help_page.split("\n"):
@@ -203,7 +203,11 @@ def pre_process(help_page: str) -> str:
     # Split the lines and iterate
     page_splits = help_page.split("\n")
     num_of_lines = len(page_splits)
-    for idx, line in enumerate(page_splits):
+
+    idx = 0
+    while idx < len(page_splits):
+        line = page_splits[idx]
+
         # Capture the starting white spaces of the line
         white_space = re_space.findall(line)
         num_white_space = len(white_space[0]) if white_space else 0
@@ -212,17 +216,24 @@ def pre_process(help_page: str) -> str:
             # - wrapped description
             # - new description
             if num_of_lines >= idx + 1 and page_splits[idx + 1] == "":
+                # new description
+                option = page_splits[idx - 1]
+                description = page_splits.pop(idx).strip()
+                page_splits[idx - 1] = option + "   " + description
+            else:
                 # wrapped description
                 desc_1 = page_splits[idx - 1]
                 desc_2 = page_splits.pop(idx).strip()
                 page_splits[idx - 1] = desc_1 + " " + desc_2
                 # Remove the empty line
                 page_splits.pop(idx)
-            else:
-                # new description
-                option = page_splits[idx - 1]
-                description = page_splits.pop(idx).strip()
-                page_splits[idx - 1] = option + "   " + description
+
+            # because we've just removed this line, we should process the
+            # same index again to see the next line
+            # e.g. we removed page_splits[3], so the old value of
+            # page_splits[4] is now page_splits[3]
+            continue
+        idx += 1
     return "\n".join(page_splits)
 
 
