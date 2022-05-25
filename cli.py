@@ -212,21 +212,12 @@ def pre_process(help_page: str) -> str:
         white_space = re_space.findall(line)
         num_white_space = len(white_space[0]) if white_space else 0
         if num_white_space > 2:
-            # Can be either
-            # - wrapped description
-            # - new description
-            if num_of_lines >= idx + 1 and page_splits[idx + 1] == "":
-                # new description
-                option = page_splits[idx - 1]
-                description = page_splits.pop(idx).strip()
-                page_splits[idx - 1] = option + "   " + description
-            else:
-                # wrapped description
-                desc_1 = page_splits[idx - 1]
-                desc_2 = page_splits.pop(idx).strip()
-                page_splits[idx - 1] = desc_1 + " " + desc_2
-                # Remove the empty line
-                page_splits.pop(idx)
+            # wrapped description
+            desc_1 = page_splits[idx - 1]
+            desc_2 = page_splits.pop(idx).strip()
+            page_splits[idx - 1] = desc_1 + " " + desc_2
+            # Remove the empty line
+            page_splits.pop(idx)
 
             # because we've just removed this line, we should process the
             # same index again to see the next line
