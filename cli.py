@@ -132,7 +132,7 @@ def parse_help(command: str) -> Tuple[str, str, str]:
     summary = []
     keyword = None  # initializing keyword with None
     parsed_dict = {}  # will hold Options and Commands
-    
+
     help_page = pre_process(help_page)
 
     for line in help_page.split("\n"):
