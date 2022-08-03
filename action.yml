@@ -33,7 +33,7 @@ runs:
     - name: setup python environment, including wandb client
       shell: bash
       env:
-        VERSION: latest
+        VERSION: ${{ github.event.release.tag_name }}
       run: python -m pip install -r ${{ github.action_path }}/requirements.txt git+https://github.com/wandb/wandb.git@$VERSION
 
     - name: checkout wandb/core
