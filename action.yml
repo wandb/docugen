@@ -34,7 +34,7 @@ runs:
       shell: bash
       env:
         VERSION: latest
-      run: python -m pip install -r ${{ github.action_path }}/requirements.txt git+https://github.com/wandb/client.git@$VERSION
+      run: python -m pip install -r ${{ github.action_path }}/requirements.txt git+https://github.com/wandb/wandb.git@$VERSION
 
     - name: checkout wandb/core
       uses: actions/checkout@v2
