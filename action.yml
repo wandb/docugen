@@ -33,10 +33,10 @@ runs:
         ref: ${{ inputs.client-branch }}
         token: ${{ inputs.access-token }}
     - name: Fetch the tag name for latest sdk release
-        run: |
-          cd ./repos/wandb
-          echo "TAG_NAME=$(git describe --tags $(git rev-list --tags --max-count=1))" >> $GITHUB_ENV
-          echo $TAG_NAME
+      run: |
+        cd ./repos/wandb
+        echo "TAG_NAME=$(git describe --tags $(git rev-list --tags --max-count=1))" >> $GITHUB_ENV
+        echo $TAG_NAME
     # setup: bring in python plus the requirements for generating docs and the new release
     - name: setup python
       uses: actions/setup-python@v2
