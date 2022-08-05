@@ -25,10 +25,10 @@ runs:
         path: repos/gitbook
         ref: ${{ inputs.gitbook-branch }}
         token: ${{ inputs.access-token }}
-    - name: checkout wandb/wandb
+    - name: checkout wandb/client
         uses: actions/checkout@v2
         with:
-          repository: wandb/wandb
+          repository: wandb/client
           path: repos/wandb
           ref: ${{ inputs.client-branch }}
           token: ${{ inputs.access-token }}
