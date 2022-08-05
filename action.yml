@@ -26,12 +26,12 @@ runs:
         ref: ${{ inputs.gitbook-branch }}
         token: ${{ inputs.access-token }}
     - name: checkout wandb/client
-        uses: actions/checkout@v2
-        with:
-          repository: wandb/client
-          path: repos/wandb
-          ref: ${{ inputs.client-branch }}
-          token: ${{ inputs.access-token }}
+      uses: actions/checkout@v2
+      with:
+        repository: wandb/client
+        path: repos/wandbs
+        ref: ${{ inputs.client-branch }}
+        token: ${{ inputs.access-token }}
     - name: Fetch the tag name for latest sdk release
         run: |
           cd ./repos/wandb
