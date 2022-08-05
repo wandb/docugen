@@ -15,9 +15,6 @@ inputs:
   access-token:
     description: "Personal access token to use when checking out repos"
     required: true
-  tag-name:
-    description: "Which release version of wandb/client to use as the source for the docs"
-    required: true
 runs:
   using: "composite"
   steps:
@@ -36,7 +33,7 @@ runs:
     - name: setup python environment, including wandb client
       shell: bash
       env:
-        VERSION: ${{ inputs.tag-name }}
+        VERSION: latest
       run: python -m pip install -r ${{ github.action_path }}/requirements.txt git+https://github.com/wandb/wandb.git@$VERSION
 
     - name: checkout wandb/core
