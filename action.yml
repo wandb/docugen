@@ -25,6 +25,21 @@ runs:
         path: repos/gitbook
         ref: ${{ inputs.gitbook-branch }}
         token: ${{ inputs.access-token }}
+    - name: checkout wandb/client
+      uses: actions/checkout@v2
+      with:
+        repository: wandb/wandb
+        path: repos/wandb
+        fetch-depth: 0
+        ref: ${{ inputs.client-branch }}
+        token: ${{ inputs.access-token }}
+    - name: Fetch the tag name for latest sdk release
+      shell: bash
+      working-directory: ./repos/wandb
+      run: |
+        git describe --tags $(git rev-list --tags --max-count=1)
+        echo "TAG_NAME=$(git describe --tags $(git rev-list --tags --max-count=1))" >> $GITHUB_ENV
+        echo $TAG_NAME
     # setup: bring in python plus the requirements for generating docs and the new release
     - name: setup python
       uses: actions/setup-python@v2
@@ -33,7 +48,7 @@ runs:
     - name: setup python environment, including wandb client
       shell: bash
       env:
-        VERSION: latest
+        VERSION: ${{ env.TAG_NAME }}
       run: python -m pip install -r ${{ github.action_path }}/requirements.txt git+https://github.com/wandb/client.git@$VERSION
 
     - name: checkout wandb/core
