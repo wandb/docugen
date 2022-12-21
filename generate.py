@@ -18,7 +18,19 @@ import cli
 import library
 
 import util
+import fileinput
 
+markdown_titles = {
+    "cli" : "Command Line Interface",
+    "python" : "Python Library",
+    'data-types' : 'Data Types',
+    'public-api' : 'Import & Export API',
+    'integrations' : 'Integrations',
+    'ref' : 'Reference',
+    'java' : 'Java Library [Beta]',
+    'keras' : 'Keras',
+    'weave' : 'Weave'
+}
 
 def main(args):
     commit_id = args.commit_id
@@ -27,7 +39,7 @@ def main(args):
     check_commit_id(commit_id)
 
     output_dir = args.output_dir
-    template_file = args.template_file
+    # template_file = args.template_file
 
     code_url_prefix = "/".join([args.repo, "tree", f"{commit_id}", args.prefix])
 
@@ -49,41 +61,8 @@ def main(args):
     # change folders with single README to file.md
     single_folder_format(ref_dir)
 
-    # fill the SUMMARY.md with generated doc files,
-    #  based on provided template.
-    populate_summary(output_dir, template_file, output_dir=output_dir)
-
     # clean up the file names
     clean_names(ref_dir)
-
-
-def populate_summary(
-    docgen_folder: str, template_file: str = "_SUMMARY.md", output_dir: str = "."
-) -> None:
-    """Populates SUMMARY.md file describing gitbook sidebar.
-
-    GitBook uses a `SUMMARY.md` file to determine which
-    files to show in the sidebar. When using docugen,
-    we must generate this partly programmatically.
-
-    Args:
-        docgen_folder: str. The root folder that contains
-            the generated docs.
-        template_file: str. A markdown template that contains
-            the rest of the SUMMARY.md.
-        output_dir: str. Directory into which to write the final
-            SUMMARY.md file.
-    """
-    docugen_markdown = walk_docugen("ref", output_dir=Path(docgen_folder), base=Path(docgen_folder))
-
-    with open(template_file, "r") as f:
-        old_summary = f.readlines()
-    doc_structure = clean_summary(old_summary)
-
-    doc_structure = doc_structure.format(docugen=docugen_markdown)
-
-    with open(os.path.join(output_dir, "SUMMARY.md"), "w") as f:
-        f.write(doc_structure)
 
 
 def walk_docugen(folder: str, output_dir: Path, base: Path) -> str:
@@ -172,6 +151,24 @@ def rename_to_readme(directory):
                     os.path.join(f"{root}", file_name),
                     os.path.join(f"{root}", raw_file_name, "README.md"),
                 )
+                format_README(os.path.join(f"{root}", raw_file_name, "README.md"))
+
+
+def format_README(filename, markdown_titles):
+    
+    with open(filename, 'r') as f:
+        first_line = f.readline().strip('# ').strip('\n')
+    #     first_line = f.readline().rsplit()[1]
+
+        if first_line in markdown_titles:
+            new_title = '# ' + markdown_titles[first_line]
+
+    with fileinput.FileInput(filename, inplace = True) as f:    
+        for line in f:
+            if f.isfirstline():
+                print(new_title, end='\n')
+            else:
+                print(line, end='')
 
 
 def clean_names(directory):
@@ -230,20 +227,6 @@ def get_info_markdown_path(path, output_dir):
     title = convert_name(name)
     return indent, title, relative_path
 
-
-def clean_summary(summary_contents):
-    output, fstring_added = [], False
-    for line in summary_contents:
-        if is_retained(line):
-            output.append(line)
-        else:
-            if not fstring_added:
-                output.append("{docugen}")
-                fstring_added = True
-
-    return "".join(output)
-
-
 def is_retained(line):
     if "ref/" not in line:
         return True
@@ -267,13 +250,6 @@ def get_args():
         type=str,
         help="Hash/Tag for the git commit to base the docs on. "
         + "Ensures that the source code is properly linked.",
-    )
-    parser.add_argument(
-        "--template_file",
-        type=str,
-        default="_SUMMARY.md",
-        help="Template markdown file for table of contents. "
-        + "Defaults to ./_SUMMARY.md",
     )
     parser.add_argument(
         "--repo",
