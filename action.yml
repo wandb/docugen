@@ -65,6 +65,7 @@ runs:
       shell: bash
       env:
         VERSION: latest
+        DOCUGEN_CONFIG_PATH: ${{ github.action_path }}/config.ini
       run: python ${{ github.action_path }}/generate.py  --commit_id $VERSION --output_dir ./repos/docodile/docs/
 
     # stage: commit the changes
