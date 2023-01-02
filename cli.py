@@ -3,6 +3,10 @@ import re
 import subprocess
 from typing import Tuple
 
+from library import format_README
+
+import fileinput
+
 PATTERN = re.compile(r"(.*?)  +(.*)")
 # (           - Start of capture
 #  .*?        - 0 or more repetitions of any character except a new line (non-greedy)
@@ -15,6 +19,9 @@ PATTERN = re.compile(r"(.*?)  +(.*)")
 KEYWORDS = ["Options:", "Commands:"]
 TEMPLATE = "# {}\n\n{}\n\n{}\n{}\n{}"
 
+MARKDOWN_TITLES = {
+    'wandb' : 'Command Line Interface'
+}
 
 def build(output_dir: str = None):
     """
@@ -72,6 +79,7 @@ def markdown_render(command: str, output_dir: str, output_file: str) -> str:
     # Write to the output file
     if usage or summary or options or subcommands:
         write_to_file(output_file, command, usage, summary, options, subcommands)
+        format_README(output_file, MARKDOWN_TITLES)
 
     # render markdown for subcommands
     if len(subcommand_list) > 0:
@@ -298,4 +306,5 @@ def prepare_dirs(base_dir, subdir_name):
     subdir = os.path.join(base_dir, subdir_name)
     os.mkdir(path=subdir)
     markdown_file = os.path.join(subdir, "README.md")
+
     return subdir, markdown_file
