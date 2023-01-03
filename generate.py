@@ -21,6 +21,7 @@ import util
 import fileinput
 import markdownify
 
+# Replace auto-genearted title as a key, provide the preferred title as the value
 MARKDOWN_TITLES = {
     "python" : "Python Library",
     'data-types' : 'Data Types',
@@ -52,7 +53,7 @@ def main(args):
     # create the library docs
     library.build(commit_id, code_url_prefix, output_dir)
 
-    # convert .build output to GitBook format
+    # convert .build output to a format docodile can use
     rename_to_readme(ref_dir)
 
     # create the CLI docs
