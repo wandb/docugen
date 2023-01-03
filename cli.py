@@ -3,7 +3,7 @@ import re
 import subprocess
 from typing import Tuple
 
-from library import format_README
+from library import format_readme_titles
 
 import fileinput
 
@@ -79,7 +79,8 @@ def markdown_render(command: str, output_dir: str, output_file: str) -> str:
     # Write to the output file
     if usage or summary or options or subcommands:
         write_to_file(output_file, command, usage, summary, options, subcommands)
-        format_README(output_file, MARKDOWN_TITLES)
+        # Format README doc titles to perferred title
+        format_readme_titles(output_file, MARKDOWN_TITLES)
 
     # render markdown for subcommands
     if len(subcommand_list) > 0:
