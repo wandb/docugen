@@ -4,6 +4,7 @@ import os
 import pathlib
 import shutil
 import tempfile
+import markdownify
 
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Type, Union
 
@@ -238,7 +239,7 @@ class DocGenerator:
 
             content = []
             content.append(pretty_docs.build_md_page(page_info))
-            text = "\n".join(content)
+            text = markdownify.markdownify("\n".join(content), escape_underscores=False)
             try:
                 path.parent.mkdir(exist_ok=True, parents=True)
                 path.write_text(text, encoding="utf-8")

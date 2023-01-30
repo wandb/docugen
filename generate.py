@@ -18,7 +18,20 @@ import cli
 import library
 
 import util
+import fileinput
+import markdownify
 
+# Replace auto-genearted title as a key, provide the preferred title as the value
+MARKDOWN_TITLES = {
+    "python" : "Python Library",
+    'data-types' : 'Data Types',
+    'public-api' : 'Import & Export API',
+    'integrations' : 'Integrations',
+    'ref' : 'Reference',
+    'java' : 'Java Library [Beta]',
+    'keras' : 'Keras',
+    'weave' : 'Weave'
+}
 
 def main(args):
     commit_id = args.commit_id
@@ -27,7 +40,7 @@ def main(args):
     check_commit_id(commit_id)
 
     output_dir = args.output_dir
-    template_file = args.template_file
+    # template_file = args.template_file
 
     code_url_prefix = "/".join([args.repo, "tree", f"{commit_id}", args.prefix])
 
@@ -40,7 +53,7 @@ def main(args):
     # create the library docs
     library.build(commit_id, code_url_prefix, output_dir)
 
-    # convert .build output to GitBook format
+    # convert .build output to a format docodile can use
     rename_to_readme(ref_dir)
 
     # create the CLI docs
@@ -49,117 +62,8 @@ def main(args):
     # change folders with single README to file.md
     single_folder_format(ref_dir)
 
-    # fill the SUMMARY.md with generated doc files,
-    #  based on provided template.
-    populate_summary(output_dir, template_file, output_dir=output_dir)
-
     # clean up the file names
     clean_names(ref_dir)
-
-
-def populate_summary(
-    docgen_folder: str, template_file: str = "_SUMMARY.md", output_dir: str = "."
-) -> None:
-    """Populates SUMMARY.md file describing gitbook sidebar.
-
-    GitBook uses a `SUMMARY.md` file to determine which
-    files to show in the sidebar. When using docugen,
-    we must generate this partly programmatically.
-
-    Args:
-        docgen_folder: str. The root folder that contains
-            the generated docs.
-        template_file: str. A markdown template that contains
-            the rest of the SUMMARY.md.
-        output_dir: str. Directory into which to write the final
-            SUMMARY.md file.
-    """
-    docugen_markdown = walk_docugen("ref", output_dir=Path(docgen_folder), base=Path(docgen_folder))
-
-    with open(template_file, "r") as f:
-        old_summary = f.readlines()
-    doc_structure = clean_summary(old_summary)
-
-    doc_structure = doc_structure.format(docugen=docugen_markdown)
-
-    with open(os.path.join(output_dir, "SUMMARY.md"), "w") as f:
-        f.write(doc_structure)
-
-
-def walk_docugen(folder: str, output_dir: Path, base: Path) -> str:
-    """Walk a folder and return a markdown-formatted list of markdown files."""
-    path, dirs, files = next(os.walk(base / folder))
-    dirs.sort(), files.sort()  # ensure alphabetical order for directories and files
-
-    if any("ref/" + skip in path for skip in library.SKIPS):  # apply skipping of directories
-        return ""
-
-    # extract title information
-    path = Path(path)
-    indent, title, relative_path = get_info_markdown_path(path, output_dir)
-    docugen_markdown = "  " * indent + f"* [{title}]({relative_path}/README.md)\n"
-
-    # recursively generate markdown from sub-directories
-    for dir in dirs:
-        docugen_markdown += walk_docugen(dir, output_dir, path)
-
-    # add files from this directory
-    docugen_markdown += add_files(files, relative_path, indent)
-
-    # if needed, add in a final newline
-    if not docugen_markdown.endswith("\n"):
-        docugen_markdown += "\n"
-
-    return docugen_markdown
-
-
-def add_files(files: list, root: str, indent: int) -> list:
-    file_markdowns = []
-    indentation = "  " * indent
-    for file_name in files:
-        if file_name == "README.md" or not file_name.endswith(".md"):
-            continue
-        short_name = file_name.split(".")[0]
-        source_prefix = get_prefix(root)
-        short_name = convert_name(short_name)
-        file_name = file_name.lower()
-        file_markdown = (
-            indentation + f"  * [{source_prefix + short_name}]({root}/{file_name})"
-        )
-        file_markdowns.append(file_markdown)
-
-    files_markdown = "\n".join(file_markdowns)
-    return files_markdown
-
-
-def get_prefix(path):
-    if path == library.DIRNAME:
-        return [], ""
-    elif "data-types" in path:
-        return library.WANDB_DATATYPES["slug"]
-    elif "public-api" in path:
-        return library.WANDB_API["slug"]
-    elif "integrations" in path:
-        starter_slug = library.WANDB_INTEGRATIONS["slug"]
-        package_name = path.split("/")[-1]
-        if package_name == "integrations":
-            package_name = "sdk.integration_utils.data_logging"
-        return f"{starter_slug}{package_name}."
-    elif "python" in path:
-        return library.WANDB_CORE["slug"]
-    elif "java" or "app" in path:
-        return ""
-    else:
-        return ""
-
-
-def convert_name(name):
-    if name in library.DIRNAMES_TO_TITLES.keys():
-        name = library.DIRNAMES_TO_TITLES[name]
-
-    name = name.replace("-", " ")
-
-    return name
 
 
 def rename_to_readme(directory):
@@ -172,7 +76,8 @@ def rename_to_readme(directory):
                     os.path.join(f"{root}", file_name),
                     os.path.join(f"{root}", raw_file_name, "README.md"),
                 )
-
+                # Format README doc titles to perferred title
+                library.format_readme_titles(os.path.join(f"{root}", raw_file_name, "README.md"), MARKDOWN_TITLES)
 
 def clean_names(directory):
     """Converts names to lower case and removes spaces."""
@@ -186,7 +91,6 @@ def clean_names(directory):
                 os.path.join(f"{root}", f"{name}"),
                 os.path.join(f"{root}", f"{short_name}"),
             )
-
 
 def single_folder_format(directory):
     """Converts all sub-folders that only contain README.md to single files, as expected by GitBook.
@@ -215,44 +119,6 @@ def single_folder_format(directory):
                 os.rmdir(root)
 
 
-def filter_files(directory, files_to_remove):
-    """Remove any unwanted files."""
-    for root, _, file_names in os.walk(directory):
-        for file_name in file_names:
-            if file_name in files_to_remove:
-                os.remove(os.path.join(f"{root}", f"{file_name}"))
-
-
-def get_info_markdown_path(path, output_dir):
-    relative_path = str(path.relative_to(output_dir))
-    components = relative_path.split("/")
-    indent, name = len(components) - 1, components[-1]
-    title = convert_name(name)
-    return indent, title, relative_path
-
-
-def clean_summary(summary_contents):
-    output, fstring_added = [], False
-    for line in summary_contents:
-        if is_retained(line):
-            output.append(line)
-        else:
-            if not fstring_added:
-                output.append("{docugen}")
-                fstring_added = True
-
-    return "".join(output)
-
-
-def is_retained(line):
-    if "ref/" not in line:
-        return True
-    else:
-        if any([skip in line for skip in library.SKIPS]):
-            return True
-        else:
-            return False
-
 
 def get_args():
     parser = argparse.ArgumentParser(
@@ -267,13 +133,6 @@ def get_args():
         type=str,
         help="Hash/Tag for the git commit to base the docs on. "
         + "Ensures that the source code is properly linked.",
-    )
-    parser.add_argument(
-        "--template_file",
-        type=str,
-        default="_SUMMARY.md",
-        help="Template markdown file for table of contents. "
-        + "Defaults to ./_SUMMARY.md",
     )
     parser.add_argument(
         "--repo",
