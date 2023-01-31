@@ -4,7 +4,8 @@ import os
 import pathlib
 import shutil
 import tempfile
-import markdownify
+# import markdownify
+from markdownify import MarkdownConverter
 
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Type, Union
 
@@ -15,6 +16,23 @@ from docugen import public_api
 from docugen import traverse
 
 EXCLUDED = set(["__init__.py", "OWNERS", "README.txt"])
+
+class DocusaurusConverter(MarkdownConverter):
+    def __init__(self):
+        super().__init__()
+
+    def remove_breaking_characters(self, text):
+        """
+        Check for characters defined in 'characters' and removes them with an empty space.
+        Args:
+            text (str): A string that contains markdown content.
+        """
+        # Check for these characters and remove them.
+        characters = "><"
+        for c in characters:
+            if c in text:
+                text = text.replace(c, "")
+        return text
 
 
 class DocGenerator:
@@ -239,7 +257,13 @@ class DocGenerator:
 
             content = []
             content.append(pretty_docs.build_md_page(page_info))
-            text = markdownify.markdownify("\n".join(content), escape_underscores=False)
+
+            # Clean up markdown and remove characters that break Docusuarus
+            docu_converter = DocusaurusConverter()
+            docu_converter.DefaultOptions.escape_underscores = False
+            markdown_content = docu_converter.convert("\n".join(content))
+            text = docu_converter.remove_breaking_characters(markdown_content)
+            
             try:
                 path.parent.mkdir(exist_ok=True, parents=True)
                 path.write_text(text, encoding="utf-8")
