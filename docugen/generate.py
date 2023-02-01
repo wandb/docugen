@@ -23,7 +23,7 @@ class DocusaurusConverter(MarkdownConverter):
 
     def multiple_replace(self, dict, text):
         """
-        Check for characters defined in 'characters' and removes them with an empty space.
+        Checks characters defined in dictionary and replaces them with desired output.
         Args:
             text (str): A string that contains markdown content.
             dict (dict): A dictionary with key-value pairs {current_string : desired_string}
