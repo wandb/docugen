@@ -4,7 +4,7 @@ import os
 import pathlib
 import shutil
 import tempfile
-# import markdownify
+import re
 from markdownify import MarkdownConverter
 
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Type, Union
@@ -21,18 +21,19 @@ class DocusaurusConverter(MarkdownConverter):
     def __init__(self):
         super().__init__()
 
-    def remove_breaking_characters(self, text):
+    def multiple_replace(self, dict, text):
         """
         Check for characters defined in 'characters' and removes them with an empty space.
         Args:
             text (str): A string that contains markdown content.
+            dict (dict): A dictionary with key-value pairs {current_string : desired_string}
         """
-        # Check for these characters and remove them.
-        characters = "><"
-        for c in characters:
-            if c in text:
-                text = text.replace(c, "")
-        return text
+        # Create a regular expression  from the dictionary keys
+        regex = re.compile("(%s)" % "|".join(map(re.escape, dict.keys())))
+
+        # For each match, look-up corresponding value in dictionary
+        return regex.sub(lambda mo: dict[mo.string[mo.start():mo.end()]], text)
+
 
 
 class DocGenerator:
@@ -259,10 +260,22 @@ class DocGenerator:
             content.append(pretty_docs.build_md_page(page_info))
 
             # Clean up markdown and remove characters that break Docusuarus
+            dictionary = {
+                "<" : "",
+                "->" : "->",
+                ">" : "",
+                "\*\*" : "**"
+                } 
+
+            # Create custom DocusaurusConverter Class that inherits from MarkdownConverter
             docu_converter = DocusaurusConverter()
             docu_converter.DefaultOptions.escape_underscores = False
+
+            # Convert text to markdown
             markdown_content = docu_converter.convert("\n".join(content))
-            text = docu_converter.remove_breaking_characters(markdown_content)
+            
+            # Remove undesirable characters and/or clean artifacts from markdown convert.
+            text = docu_converter.multiple_replace(dictionary, markdown_content)
             
             try:
                 path.parent.mkdir(exist_ok=True, parents=True)
