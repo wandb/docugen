@@ -80,7 +80,7 @@ runs:
         git config --local user.name "github-actions[bot]"x
         if [[ `git status --porcelain` ]]; then
           git add -A .
-          git commit -m "Update reference docs to cli@${{ inputs.client-branch }}, core@${{ inputs.core-branch }} using https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA
+          git commit -m "Update reference docs to cli@${{ inputs.client-branch }}, core@${{ inputs.core-branch }} using https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA"
           git remote set-url origin https://${{ inputs.access-token }}@github.com/wandb/docodile.git ; \
           git pull ; \
           git push ; \
