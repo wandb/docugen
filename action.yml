@@ -7,7 +7,7 @@ inputs:
   core-branch:
     description: "Which branch of wandb/core to use as the source for the docs"
     required: true
-    default: main
+    default: master
   client-branch:
     description: "Which branch of wandb/client to use as the source for the docs"
     required: true
