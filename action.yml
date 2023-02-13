@@ -83,8 +83,8 @@ runs:
           git add -A .
           git commit -m "Update reference docs to cli@${{ inputs.client-branch }}, core@${{ inputs.core-branch }} using https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA"
           git remote set-url origin https://${{ inputs.access-token }}@github.com/wandb/docodile.git ; \
-          git pull ; \
           git branch --set-upstream-to=origin/main sdk_release ;\
+          git pull origin main; \
           git push origin sdk_release; \
         else
           echo "Documentation has not changed; skipping commit/push" ;
