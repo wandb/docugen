@@ -264,7 +264,8 @@ class DocGenerator:
                 "<" : "",
                 "->" : "->",
                 ">" : "",
-                "\*\*" : "**"
+                "\*\*" : "**",
+                "\_" : "_",
                 } 
 
             # Create custom DocusaurusConverter Class that inherits from MarkdownConverter
