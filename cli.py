@@ -160,7 +160,7 @@ def parse_help(command: str) -> Tuple[str, str, str]:
             # [("--version","Show the version")]
             extract = PATTERN.findall(line)
             if extract:
-                parsed_dict[keyword].append([extract[0][0], extract[0][1]])
+                parsed_dict[keyword].append([extract[0][0], re.sub(r' +', ' ', extract[0][1])])
 
     if len(summary) == 0:
         return "", "", parsed_dict
@@ -208,32 +208,8 @@ def pre_process(help_page: str) -> str:
     # The help page has a lot of components
     # We need to sample the `option  description` lines, which starts
     # with white spaces.
-    re_space = re.compile(r"(^\s+)")  # Regex to capture starting white spaces.
-
-    # Split the lines and iterate
-    page_splits = help_page.split("\n")
-    num_of_lines = len(page_splits)
-    for idx, line in enumerate(page_splits):
-        # Capture the starting white spaces of the line
-        white_space = re_space.findall(line)
-        num_white_space = len(white_space[0]) if white_space else 0
-        if num_white_space > 2:
-            # Can be either
-            # - wrapped description
-            # - new description
-            if num_of_lines >= idx + 1 and page_splits[idx + 1] == "":
-                # wrapped description
-                desc_1 = page_splits[idx - 1]
-                desc_2 = page_splits.pop(idx).strip()
-                page_splits[idx - 1] = desc_1 + " " + desc_2
-                # Remove the empty line
-                page_splits.pop(idx)
-            else:
-                # new description
-                option = page_splits[idx - 1]
-                description = page_splits.pop(idx).strip()
-                page_splits[idx - 1] = option + "   " + description
-    return "\n".join(page_splits)
+    re_line_indent = re.compile(r"\n {3,}", )
+    return re_line_indent.sub('  ', help_page)
 
 
 def get_options_markdown(options):
