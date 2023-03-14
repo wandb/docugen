@@ -1,6 +1,8 @@
 -r docugen/requirements.txt
 
 dataclasses
+markdownify
 
 # for integrations
 tensorflow
+
