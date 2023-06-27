@@ -273,6 +273,7 @@ ALLOWED_DUNDER_METHODS = frozenset(
         "__rsub__",
         "__rtruediv__",
         "__rxor__",
+        "__setitem__",
         "__sub__",
         "__truediv__",
         "__xor__",
