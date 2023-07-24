@@ -2,12 +2,11 @@
 
 ## `generate.py`
 
-This script generates documentation for the `wandb` library
-in a format suitable for use with GitBook.
+This script generates documentation for the `wandb` SDK library.
 
 For help with this function, run
 
-```text
+```shell
 python generate.py --help
 ```
 
@@ -18,12 +17,11 @@ based on the
 
 ### Steps
 
-1. Run `pip install --upgrade git+git://github.com/wandb/client.git@<commit_id>`
+1. Run `pip install --upgrade git+git://github.com/wandb/wandb.git@<commit_id>`
    to install the version of`wandb` you wish to document.
 2. Run `python generate.py --commit_id <commit_id>` to create the documentation.
    Make sure to use a full hash or tag -- it's used to create URLs.
-3. Move the generated documentation into a local copy of
-   [the repository for the GitBook](https://www.github.com/).
+3. Move the generated documentation into a local copy of the Docs repository.
 
 ### Outputs
 
@@ -41,10 +39,10 @@ based on the
 
 ### Example Usage
 
-```python
+```shell
 python generate.py \
   --template_file _SUMMARY.md \
-  --commit_id v0.10.28 \
+  --commit_id v0.15.6 \
   --output_dir path/to/gitbook
 ```
 
@@ -74,9 +72,9 @@ but didn't make it available at the top level, we'd add it to the `add-elements`
 
 Editing on top of [the state at commit `7ab1d97`](https://github.com/wandb/docugen/blob/7ab1d97cb504d502a665464635e3e247bb9859c1/config.ini), the subconfig sections of `config.ini` would look like:
 
-```python
+```ini
 [WANDB_CORE]
-# main python client
+# main python SDK library
 dirname=python
 title=Python Library
 slug=wandb.

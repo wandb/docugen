@@ -91,7 +91,7 @@ def build_docs_from_config(config, commit_id, code_url_prefix, output_dir):
 
 
 def build_docs(name_pair, output_dir, code_url_prefix):
-    """Builds Python docs for W&B client library.
+    """Builds Python docs for W&B SDK library.
 
     Args:
         name_pair: Name of the pymodule

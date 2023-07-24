@@ -1,6 +1,6 @@
 """Generate reference documentation for Weights & Biases.
 
-Creates docs for the Weights & Biases client library and for the wandb CLI tool.
+Creates docs for the Weights & Biases SDK library and for the wandb CLI tool.
 
 For help, run:
 
@@ -125,8 +125,8 @@ def get_args():
     )
     # The commit_id can be the complete git hash
     # or can be the tag for the version of code.
-    # eg. HASH = https://github.com/wandb/client/tree/c129c32964aca6a8509d98a0cc3c9bc46f2d8a4c
-    # eg. TAG = https://github.com/wandb/client/tree/v0.10.27
+    # eg. HASH = https://github.com/wandb/wandb/tree/c129c32964aca6a8509d98a0cc3c9bc46f2d8a4c
+    # eg. TAG = https://github.com/wandb/wandb/tree/v0.15.5
     parser.add_argument(
         "--commit_id",
         type=str,
@@ -136,14 +136,14 @@ def get_args():
     parser.add_argument(
         "--repo",
         type=str,
-        default="https://www.github.com/wandb/client",
-        help="Repo to link for source code. Defaults to wandb/client.",
+        default="https://www.github.com/wandb/wandb",
+        help="Repo to link for source code. Defaults to wandb/wandb.",
     )
     parser.add_argument(
         "--prefix",
         type=str,
         default="wandb",
-        help="Folder within GitHub repo where wandb client code is located. "
+        help="Folder within GitHub repo where wandb SDK code is located. "
         + "Defaults to wandb.",
     )
     parser.add_argument(
@@ -182,5 +182,4 @@ def check_commit_id(commit_id):
 
 
 if __name__ == "__main__":
-    args = get_args()
-    main(args)
+    main(get_args())
