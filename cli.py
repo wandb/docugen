@@ -5,7 +5,6 @@ from typing import Tuple
 
 from library import format_readme_titles
 
-import fileinput
 
 PATTERN = re.compile(r"(.*?)  +(.*)")
 # (           - Start of capture
@@ -20,9 +19,8 @@ KEYWORDS = ["Options:", "Commands:"]
 TEMPLATE = "# {}\n\n{}\n\n{}\n{}\n{}"
 
 # Replace auto-genearted title as a key, provide the preferred title as the value
-MARKDOWN_TITLES = {
-    'wandb' : 'Command Line Interface'
-}
+MARKDOWN_TITLES = {"wandb": "Command Line Interface"}
+
 
 def build(output_dir: str = None):
     """
@@ -186,9 +184,12 @@ def pre_process(help_page: str) -> str:
                               nvidia-docker is present
     ```
     We find two types of overflow problems:
-    - new description: Due to the overflow of the option `--sync-tensorboard / --no-sync-tensorboard`
-        the description `Stream tfevent files to wandb.` is sent to the next line.
-    - wrapped description: Due to the overflow of the description `Use the nvidia runtime, defaults to nvidia if`
+    - new description: Due to the overflow of the option
+        `--sync-tensorboard / --no-sync-tensorboard`
+        the description `Stream tfevent files to wandb.`
+        is sent to the next line.
+    - wrapped description: Due to the overflow of the description
+        `Use the nvidia runtime, defaults to nvidia if`
         the rest of the description is wrapped to the next line.
 
     This breaks our parser that looks for lines with `option   description`.
@@ -196,7 +197,8 @@ def pre_process(help_page: str) -> str:
     expects.
     ```bash
     --sync-tensorboard / --no-sync-tensorboard   Stream tfevent files to wandb.
-    --nvidia / --no-nvidia   Use the nvidia runtime, defaults to nvidia if nvidia-docker is present.
+    --nvidia / --no-nvidia   Use the nvidia runtime,
+       defaults to nvidia if nvidia-docker is present.
     ```
 
     Args:

@@ -7,9 +7,7 @@ For help, run:
 python generate.py --help
 """
 import argparse
-import configparser
 import os
-from pathlib import Path
 import shutil
 
 import wandb
@@ -17,21 +15,19 @@ import wandb
 import cli
 import library
 
-import util
-import fileinput
-import markdownify
 
-# Replace auto-genearted title as a key, provide the preferred title as the value
+# Replace auto-generated title as a key, provide the preferred title as the value
 MARKDOWN_TITLES = {
-    "python" : "Python Library",
-    'data-types' : 'Data Types',
-    'public-api' : 'Import & Export API',
-    'integrations' : 'Integrations',
-    'ref' : 'Reference',
-    'java' : 'Java Library [Beta]',
-    'keras' : 'Keras',
-    'weave' : 'Weave'
+    "python": "Python Library",
+    "data-types": "Data Types",
+    "public-api": "Import & Export API",
+    "integrations": "Integrations",
+    "ref": "Reference",
+    "java": "Java Library [Beta]",
+    "keras": "Keras",
+    "weave": "Weave",
 }
+
 
 def main(args):
     commit_id = args.commit_id
@@ -67,7 +63,7 @@ def main(args):
 
 
 def rename_to_readme(directory):
-    """Moves all the folder-level markdown files into their respective folders, as a README."""
+    """Moves all folder-level markdown files into respective folders, as a README."""
     for root, folders, file_names in os.walk(directory):
         for file_name in file_names:
             raw_file_name, suffix = file_name[:-3], file_name[-3:]
@@ -77,7 +73,10 @@ def rename_to_readme(directory):
                     os.path.join(f"{root}", raw_file_name, "README.md"),
                 )
                 # Format README doc titles to perferred title
-                library.format_readme_titles(os.path.join(f"{root}", raw_file_name, "README.md"), MARKDOWN_TITLES)
+                library.format_readme_titles(
+                    os.path.join(f"{root}", raw_file_name, "README.md"), MARKDOWN_TITLES
+                )
+
 
 def clean_names(directory):
     """Converts names to lower case and removes spaces."""
@@ -92,8 +91,9 @@ def clean_names(directory):
                 os.path.join(f"{root}", f"{short_name}"),
             )
 
+
 def single_folder_format(directory):
-    """Converts all sub-folders that only contain README.md to single files, as expected by GitBook.
+    """Converts all sub-folders that only contain README.md to single files.
 
     So the tree:
         - folder
@@ -117,7 +117,6 @@ def single_folder_format(directory):
                     os.path.join(f"{parent_root}", f"{cwd}.md"),
                 )
                 os.rmdir(root)
-
 
 
 def get_args():
@@ -151,8 +150,8 @@ def get_args():
         "--output_dir",
         type=str,
         default=os.getcwd(),
-        help=f"Folder into which to place folder {library.DIRNAME}/ containing results. "
-        + "Defaults to current directory.",
+        help="Folder into which to place folder "
+        "{library.DIRNAME}/ containing results. " + "Defaults to current directory.",
     )
     return parser.parse_args()
 
