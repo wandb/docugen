@@ -77,7 +77,7 @@ runs:
       shell: bash
       env:
         DOCUGEN_CONFIG_PATH: ${{ github.action_path }}/config.ini
-      run: python ${{ github.action_path }}/generate.py  --commit_id {{ inputs.wandb-branch }} --output_dir ./repos/docodile/docs/
+      run: python ${{ github.action_path }}/generate.py  --commit_id ${{ inputs.wandb-branch }} --output_dir ./repos/docodile/docs/
 
     # stage: commit the changes
     - name: commit changes
