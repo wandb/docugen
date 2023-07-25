@@ -11,10 +11,18 @@ inputs:
   wandb-branch:
     description: "Which branch of wandb/wandb to use as the source for the docs"
     required: true
-    default: latest
+    default: main
   access-token:
     description: "Personal access token to use when checking out repos"
     required: true
+  generate-weave-docs:
+    description: "Whether to generate weave documentation"
+    required: false
+    default: 'true'
+  generate-sdk-docs:
+    description: "Whether to generate SDK documentation"
+    required: false
+    default: 'true'
 runs:
   using: "composite"
   steps:
@@ -34,9 +42,10 @@ runs:
       shell: bash
       env:
         VERSION: latest
-      run: python -m pip install -r ${{ github.action_path }}/requirements.txt git+https://github.com/wandb/wandb.git@$VERSION
+      run: python -m pip install -r ${{ github.action_path }}/requirements.txt git+https://github.com/wandb/wandb.git@{{ inputs.wandb-branch }}
 
     - name: checkout wandb/core
+      if: ${{ inputs.generate-weave-docs == 'true' }}
       uses: actions/checkout@v2
       with:
         repository: wandb/core
@@ -52,6 +61,7 @@ runs:
         cache-dependency-path: repos/core/lib/js/cg/yarn.lock
 
     - name: generate weave documentation
+      if: ${{ inputs.generate-weave-docs == 'true' }}
       shell: bash
       run: |
         yarn --cwd=./repos/core/lib/js/cg --frozen-lockfile
@@ -62,11 +72,11 @@ runs:
 
     # generate the docs from the latest sdk library and overwrite docodile contents
     - name: generate SDK documentation
+      if: ${{ inputs.generate-sdk-docs == 'true' }}
       shell: bash
       env:
-        VERSION: latest
         DOCUGEN_CONFIG_PATH: ${{ github.action_path }}/config.ini
-      run: python ${{ github.action_path }}/generate.py  --commit_id $VERSION --output_dir ./repos/docodile/docs/
+      run: python ${{ github.action_path }}/generate.py  --commit_id {{ inputs.wandb-branch }} --output_dir ./repos/docodile/docs/
 
     # stage: commit the changes
     - name: commit changes
