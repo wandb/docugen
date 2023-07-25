@@ -79,7 +79,8 @@ runs:
       env:
         DOCUGEN_CONFIG_PATH: ${{ github.action_path }}/config.ini
       run: |
-        python ${{ github.action_path }}/generate.py  --commit_id ${{ inputs.wandb-branch }}
+        python ${{ github.action_path }}/generate.py  --commit_id ${{ inputs.wandb-branch }} --output_dir ${{ github.action_path }}
+        pwd
         ls -lhtr ${{ github.action_path }}/ref/**/**
 
     # stage: commit the changes
@@ -97,7 +98,7 @@ runs:
         git remote set-url origin https://${{ inputs.access-token }}@github.com/wandb/docodile.git ; \
         git pull origin main
         git reset --hard origin/main
-        cp -r ${{ github.action_path }}/ref ./docs/ref
+        cp -r ${{ github.action_path }}/ref ./docs/
         if [[ `git status --porcelain` ]]; then
           git checkout -b sdk-${{ inputs.wandb-branch }} ; \
           git add -A .
