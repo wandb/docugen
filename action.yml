@@ -79,7 +79,8 @@ runs:
       env:
         DOCUGEN_CONFIG_PATH: ${{ github.action_path }}/config.ini
       run: |
-        python ${{ github.action_path }}/generate.py  --commit_id ${{ inputs.wandb-branch }}
+        python ${{ github.action_path }}/generate.py  --commit_id ${{ inputs.wandb-branch }} --output_dir ${{ github.action_path }}
+        pwd
         ls -lhtr ${{ github.action_path }}/ref/**/**
 
     # stage: commit the changes
