@@ -309,7 +309,7 @@ class DocGenerator:
           private_map: A {'path':["name"]} dictionary listing particular object
             locations that should be ignored in the doc generator.
           visitor_cls: A class, typically a subclass of
-            `doc_generator_visitor.DocGeneratorVisitor` that acumulates the indexes of
+            `doc_generator_visitor.DocGeneratorVisitor` that accumulates the indexes of
             objects to document.
           callbacks: Additional callbacks passed to `traverse`. Executed between the
             `PublicApiFilter` and the accumulator (`DocGeneratorVisitor`). The

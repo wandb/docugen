@@ -361,11 +361,12 @@ def _build_method_section(method_info, heading_level=3):
       A markdown string.
     """
     parts = []
-    heading = (
-        '<h{heading_level} id="{short_name}">'
-        "<code>{short_name}</code>"
-        "</h{heading_level}>\n\n"
-    )
+    # heading = (
+    #     '<h{heading_level} id="{short_name}">'
+    #     "<code>{short_name}</code>"
+    #     "</h{heading_level}>\n\n"
+    # )
+    heading = "#" * heading_level + " `{short_name}`\n\n"
     parts.append(heading.format(heading_level=heading_level, **method_info._asdict()))
 
     if method_info.defined_in:
@@ -545,9 +546,26 @@ _TABLE_TEMPLATE = textwrap.dedent(
     {table_footer}"""
 )
 
+# _TABLE_LINK_TEMPLATE = (
+#     "[![](https://www.tensorflow.org/images/GitHub-Mark-32px.png)"
+#     " View source on GitHub]({url})"
+# )
+
 _TABLE_LINK_TEMPLATE = (
-    "[![](https://www.tensorflow.org/images/GitHub-Mark-32px.png)"
-    "View source on GitHub]({url})"
+    "<p>"
+    "<button style={{{{display: 'flex', alignItems: 'center', "
+    "backgroundColor: 'white', border: '1px solid #ddd', padding: '10px', "
+    "borderRadius: '6px', cursor: 'pointer', "
+    "boxShadow: '0 2px 3px rgba(0,0,0,0.1)', transition: 'all 0.3s'}}}}>"
+    "<a href='{url}' style={{{{fontSize: '1.2em', "
+    "display: 'flex', alignItems: 'center'}}}}>"
+    "<img "
+    "src='https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png'"
+    " height='32px' width='32px' style={{{{marginRight: '10px'}}}}/>"
+    "View source on GitHub"
+    "</a>"
+    "</button>"
+    "</p>"
 )
 
 
