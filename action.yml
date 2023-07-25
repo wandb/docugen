@@ -4,6 +4,7 @@ inputs:
   docodile-branch:
     description: "Which branch of wandb/docodile to update"
     required: true
+    default: main
   core-branch:
     description: "Which branch of wandb/core to use as the source for the docs"
     required: true
@@ -77,7 +78,9 @@ runs:
       shell: bash
       env:
         DOCUGEN_CONFIG_PATH: ${{ github.action_path }}/config.ini
-      run: python ${{ github.action_path }}/generate.py  --commit_id ${{ inputs.wandb-branch }} --output_dir ./repos/docodile/docs/
+      run: |
+        python ${{ github.action_path }}/generate.py  --commit_id ${{ inputs.wandb-branch }}
+        ls -lhtr ${{ github.action_path }}/ref/**/**
 
     # stage: commit the changes
     - name: commit changes
@@ -91,12 +94,14 @@ runs:
         # https://api.github.com/users/github-actions%5Bbot%5D
         git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"x
+        git remote set-url origin https://${{ inputs.access-token }}@github.com/wandb/docodile.git ; \
+        git pull origin main
+        git reset --hard origin/main
+        cp -r ${{ github.action_path }}/ref ./docs/ref
         if [[ `git status --porcelain` ]]; then
           git checkout -b sdk-${{ inputs.wandb-branch }} ; \
           git add -A .
           git commit -m "Update reference docs to sdk@${{ inputs.wandb-branch }}, core@${{ inputs.core-branch }} using https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA"
-          git remote set-url origin https://${{ inputs.access-token }}@github.com/wandb/docodile.git ; \
-          git pull origin main; \
           git push origin sdk-${{ inputs.wandb-branch }}; \
           gh pr create --base main --head sdk-${{ inputs.wandb-branch }} --title "Update reference docs to sdk@${{ inputs.wandb-branch }}, core@${{ inputs.core-branch }}" --body "Used https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA"
         else
