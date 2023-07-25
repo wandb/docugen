@@ -22,7 +22,7 @@ based on the
 2. Run `python generate.py --commit_id <commit_id>` to create the documentation.
    Make sure to use a full hash or tag -- it's used to create URLs.
 3. Move the generated documentation into a local copy
-   of the Docs repository (`docs/ref`).
+   of the Docs repository (under `docs/ref`).
 
 ### Outputs
 
