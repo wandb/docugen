@@ -83,6 +83,8 @@ runs:
     - name: commit changes
       shell: bash
       working-directory: ./repos/docodile
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         # hardcoded to the user ID representing the github actions bot, see:
         # https://github.community/t/github-actions-bot-email-address/17204/6
@@ -90,13 +92,13 @@ runs:
         git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"x
         if [[ `git status --porcelain` ]]; then
-          git checkout -b sdk_release ; \
+          git checkout -b sdk-${{ inputs.wandb-branch }} ; \
           git add -A .
-          git commit -m "Update reference docs to cli@${{ inputs.wandb-branch }}, core@${{ inputs.core-branch }} using https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA"
+          git commit -m "Update reference docs to sdk@${{ inputs.wandb-branch }}, core@${{ inputs.core-branch }} using https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA"
           git remote set-url origin https://${{ inputs.access-token }}@github.com/wandb/docodile.git ; \
-          git branch --set-upstream-to=origin/main sdk_release ;\
           git pull origin main; \
-          git push origin sdk_release; \
+          git push origin sdk-${{ inputs.wandb-branch }}; \
+          gh pr create --base main --head sdk-${{ inputs.wandb-branch }} --title "Update reference docs to sdk@${{ inputs.wandb-branch }}, core@${{ inputs.core-branch }}" --body "Used https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA"
         else
           echo "Documentation has not changed; skipping commit/push" ;
         fi
