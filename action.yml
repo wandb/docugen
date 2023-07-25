@@ -27,7 +27,7 @@ runs:
   using: "composite"
   steps:
     - name: checkout docodile repo
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         repository: wandb/docodile
         path: repos/docodile
@@ -35,7 +35,7 @@ runs:
         token: ${{ inputs.access-token }}
     # setup: bring in python plus the requirements for generating docs and the new release
     - name: setup python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: "3.9"
     - name: setup python environment, including wandb sdk
@@ -46,7 +46,7 @@ runs:
 
     - name: checkout wandb/core
       if: ${{ inputs.generate-weave-docs == 'true' }}
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         repository: wandb/core
         path: repos/core
@@ -54,9 +54,9 @@ runs:
         token: ${{ inputs.access-token }}
 
     - name: setup node
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
       with:
-        node-version: "16"
+        node-version: 16
         cache: "yarn"
         cache-dependency-path: repos/core/lib/js/cg/yarn.lock
 
