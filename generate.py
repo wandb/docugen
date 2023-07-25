@@ -23,7 +23,6 @@ MARKDOWN_TITLES = {
     "public-api": "Import & Export API",
     "integrations": "Integrations",
     "ref": "Reference",
-    "java": "Java Library [Beta]",
     "keras": "Keras",
     "weave": "Weave",
 }
@@ -72,7 +71,7 @@ def rename_to_readme(directory):
                     os.path.join(f"{root}", file_name),
                     os.path.join(f"{root}", raw_file_name, "README.md"),
                 )
-                # Format README doc titles to perferred title
+                # Format README doc titles to preferred title
                 library.format_readme_titles(
                     os.path.join(f"{root}", raw_file_name, "README.md"), MARKDOWN_TITLES
                 )

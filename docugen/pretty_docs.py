@@ -486,7 +486,7 @@ DECORATOR_ALLOWLIST = {
 def _build_signature(
     obj_info: parser.PageInfo, obj_name: str, type_alias: bool = False
 ) -> str:
-    """Returns a markdown code block containing the function signature.
+    """Returns a Markdown code block containing the function signature.
 
     Wraps the signature and limits it to 80 characters.
 
@@ -507,8 +507,8 @@ def _build_signature(
         return textwrap.dedent(
             """
       ```python
-      tf.range(limit, delta=1, dtype=None, name='range')
-      tf.range(start, limit, delta=1, dtype=None, name='range')
+      tf.range(limit, delta=1, dtype=None, name="range")
+      tf.range(start, limit, delta=1, dtype=None, name="range")
       ```
       """
         )
@@ -519,11 +519,7 @@ def _build_signature(
 
     if hasattr(obj_info, "decorators"):
         parts.extend(
-            [
-                f"@{dec}\n"
-                for dec in obj_info.decorators
-                if dec in DECORATOR_ALLOWLIST
-            ]
+            [f"@{dec}\n" for dec in obj_info.decorators if dec in DECORATOR_ALLOWLIST]
         )
 
     if type_alias:
@@ -549,11 +545,14 @@ _TABLE_TEMPLATE = textwrap.dedent(
     {table_footer}"""
 )
 
-_TABLE_LINK_TEMPLATE = """[![](https://www.tensorflow.org/images/GitHub-Mark-32px.png)View source on GitHub]({url})"""
+_TABLE_LINK_TEMPLATE = (
+    "[![](https://www.tensorflow.org/images/GitHub-Mark-32px.png)"
+    "View source on GitHub]({url})"
+)
 
 
 def _top_source_link(location):
-    """Retrns a source link with Github image, like the notebook butons."""
+    """Returns a source link with GitHub image, like the notebook buttons."""
 
     table_content = ""
     table_footer = ""
@@ -575,7 +574,7 @@ def _top_source_link(location):
 
 def _small_source_link(location):
     """Returns a small source link."""
-    template = '[View source]({url})\n\n'
+    template = "[View source]({url})\n\n"
 
     if not location.url:
         return ""

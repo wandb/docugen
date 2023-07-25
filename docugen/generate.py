@@ -2,12 +2,14 @@
 
 import os
 import pathlib
+import re
 import shutil
 import tempfile
-import re
-from markdownify import MarkdownConverter
 
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Type, Union
+
+import mistune
+from mistune.renderers.markdown import MarkdownRenderer
 
 from docugen import doc_generator_visitor
 from docugen import parser
@@ -15,25 +17,23 @@ from docugen import pretty_docs
 from docugen import public_api
 from docugen import traverse
 
-EXCLUDED = set(["__init__.py", "OWNERS", "README.txt"])
 
-class DocusaurusConverter(MarkdownConverter):
-    def __init__(self):
-        super().__init__()
+EXCLUDED = {"__init__.py", "OWNERS", "README.txt"}
 
-    def multiple_replace(self, dict, text):
-        """
-        Checks characters defined in dictionary and replaces them with desired output.
-        Args:
-            text (str): A string that contains markdown content.
-            dict (dict): A dictionary with key-value pairs {current_string : desired_string}
-        """
-        # Create a regular expression  from the dictionary keys
-        regex = re.compile("(%s)" % "|".join(map(re.escape, dict.keys())))
 
-        # For each match, look-up corresponding value in dictionary
-        return regex.sub(lambda mo: dict[mo.string[mo.start():mo.end()]], text)
+def multiple_replace(text: str, dictionary: Dict[str, str]) -> str:
+    """
+    Checks characters defined in dictionary and replaces them with desired output.
+    Args:
+        text (str): A string that contains markdown content.
+        dictionary (dict): A dictionary with key-value pairs
+            {current_string : desired_string}
+    """
+    # Create a regular expression  from the dictionary keys
+    regex = re.compile("(%s)" % "|".join(map(re.escape, dictionary.keys())))
 
+    # For each match, look-up corresponding value in dictionary
+    return regex.sub(lambda mo: dictionary[mo.string[mo.start() : mo.end()]], text)
 
 
 class DocGenerator:
@@ -237,7 +237,7 @@ class DocGenerator:
             if full_name in parser_config.duplicate_of:
                 continue
 
-            # Methods constants are only documented only as part of their parent's page.
+            # Methods constants are documented only as part of their parent's page.
             if parser_config.reference_resolver.is_fragment(full_name):
                 continue
 
@@ -261,24 +261,19 @@ class DocGenerator:
 
             # Clean up markdown and remove characters that break Docusuarus
             dictionary = {
-                "<" : "",
-                "->" : "->",
-                ">" : "",
-                "\_" : "_",
-                "\*" : "*",
-                "\*\*" : "**"
-                } 
+                "\_": "_",
+                "\*": "*",
+                "\*\*": "**",
+                "&quot;": '"',
+            }
 
-            # Create custom DocusaurusConverter Class that inherits from MarkdownConverter
-            docu_converter = DocusaurusConverter()
-            docu_converter.DefaultOptions.escape_underscores = False
+            markdown_renderer = mistune.create_markdown(renderer=MarkdownRenderer())
 
-            # Convert text to markdown
-            markdown_content = docu_converter.convert("\n".join(content))
-            
-            # Remove undesirable characters and/or clean artifacts from markdown convert.
-            text = docu_converter.multiple_replace(dictionary, markdown_content)
-            
+            markdown_content = markdown_renderer("\n".join(content))
+
+            # Remove undesirable characters and/or clean artifacts from markdown convert
+            text = multiple_replace(markdown_content, dictionary)
+
             try:
                 path.parent.mkdir(exist_ok=True, parents=True)
                 path.write_text(text, encoding="utf-8")

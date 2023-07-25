@@ -414,7 +414,7 @@ class ReferenceResolver(object):
         return new_partial_dict
 
     def replace_backticks(self, string):
-        """Piggy-backs on reference_resolver to replace `backticks` with <code>HTML</code>.
+        """Replace `backticks` with <code>HTML</code>.
 
         Args:
           string: A string in which `backticks` outside of links should be replaced.
@@ -621,7 +621,7 @@ class TitleBlock(object):
         )
 
     def __str__(self) -> str:
-        """Returns a non-tempated version of the TitleBlock."""
+        """Returns a non-templated version of the TitleBlock."""
 
         sub = []
         sub.append(f"\n\n#### {self.title}:\n")
@@ -763,7 +763,8 @@ def _parse_md_docstring(
 
     ```python
     relative_path_to_root = os.path.relpath(
-      path='.', start=os.path.dirname(documentation_path(full_name)) or '.')
+        path=".", start=os.path.dirname(documentation_path(full_name)) or "."
+    )
     ```
 
     Args:
@@ -1004,7 +1005,7 @@ class FormatArguments(object):
         if match:
             for internal_name, public_name in self._INTERNAL_NAMES.items():
                 if match.group(0).startswith(internal_name):
-                    return public_name + default_text[len(internal_name):]
+                    return public_name + default_text[len(internal_name) :]
         return default_text
 
     def format_return(self, return_anno: Any) -> str:
@@ -1235,7 +1236,7 @@ def generate_signature(
         return_type = formatter.format_return(return_anno)
     else:
         return_type = "None"
-    all_args_list = list(map(lambda x: x.replace('&#x27;', '"'), all_args_list))
+    all_args_list = list(map(lambda x: x.replace("&#x27;", '"'), all_args_list))
     return _SignatureComponents(
         arguments=all_args_list,
         arguments_typehint_exists=arguments_typehint_exists,
@@ -1555,7 +1556,7 @@ class ClassPageInfo(PageInfo):
           member_info: a `MemberInfo` describing the property.
         """
         doc = member_info.doc
-        # Hide useless namedtuple docs-trings.
+        # Hide useless namedtuple docs-strings.
         if re.match("Alias for field number [0-9]+", doc.brief):
             doc = doc._replace(docstring_parts=[], brief="")
 
@@ -1897,7 +1898,6 @@ class ModulePageInfo(PageInfo):
 
         member_names = parser_config.tree.get(self.full_name, [])
         for member_short_name in member_names:
-
             if member_short_name in [
                 "__builtins__",
                 "__doc__",
