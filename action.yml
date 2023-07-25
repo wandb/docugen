@@ -84,7 +84,7 @@ runs:
       shell: bash
       working-directory: ./repos/docodile
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ inputs.access-token }}
       run: |
         # hardcoded to the user ID representing the github actions bot, see:
         # https://github.community/t/github-actions-bot-email-address/17204/6
