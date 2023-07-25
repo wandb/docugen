@@ -42,7 +42,7 @@ runs:
       shell: bash
       env:
         VERSION: latest
-      run: python -m pip install -r ${{ github.action_path }}/requirements.txt git+https://github.com/wandb/wandb.git@{{ inputs.wandb-branch }}
+      run: python -m pip install -r ${{ github.action_path }}/requirements.txt git+https://github.com/wandb/wandb.git@${{ inputs.wandb-branch }}
 
     - name: checkout wandb/core
       if: ${{ inputs.generate-weave-docs == 'true' }}
