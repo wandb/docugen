@@ -143,6 +143,8 @@ def parse_help(command: str) -> Tuple[str, str, str]:
 
     help_page = pre_process(help_page)
 
+    full_line = ""
+    tmp = None
     for line in help_page.split("\n"):
         line = line.strip()
         if line in KEYWORDS:  # Keywords contains [Options, Commands]
@@ -152,6 +154,13 @@ def parse_help(command: str) -> Tuple[str, str, str]:
         if keyword is None:
             summary.append(line)
         else:
+            # handle multi line options
+            if keyword == "Options:" and not line.startswith("-"):
+                full_line += line
+                continue
+            elif keyword == "Options:" and line.startswith("-"):
+                tmp = line
+                line = full_line
             # PATTERN helps with option and value
             # eg. --version Shows the version
             # will be captured like
@@ -159,6 +168,9 @@ def parse_help(command: str) -> Tuple[str, str, str]:
             extract = PATTERN.findall(line)
             if extract:
                 parsed_dict[keyword].append([extract[0][0], extract[0][1]])
+            if tmp is not None:
+                full_line = tmp
+                tmp = None
 
     if len(summary) == 0:
         return "", "", parsed_dict
