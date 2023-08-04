@@ -156,7 +156,7 @@ def parse_help(command: str) -> Tuple[str, str, str]:
         else:
             # handle multi line options
             if keyword == "Options:" and not line.startswith("-"):
-                full_line += line
+                full_line += " " + line
                 continue
             elif keyword == "Options:" and line.startswith("-"):
                 tmp = line
