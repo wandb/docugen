@@ -1,6 +1,7 @@
 -r docugen/requirements.txt
 
 dataclasses
+mistune
 
 # for integrations
 tensorflow

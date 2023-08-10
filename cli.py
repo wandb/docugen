@@ -3,6 +3,9 @@ import re
 import subprocess
 from typing import Tuple
 
+from library import format_readme_titles
+
+
 PATTERN = re.compile(r"(.*?)  +(.*)")
 # (           - Start of capture
 #  .*?        - 0 or more repetitions of any character except a new line (non-greedy)
@@ -14,6 +17,9 @@ PATTERN = re.compile(r"(.*?)  +(.*)")
 
 KEYWORDS = ["Options:", "Commands:"]
 TEMPLATE = "# {}\n\n{}\n\n{}\n{}\n{}"
+
+# Replace auto-genearted title as a key, provide the preferred title as the value
+MARKDOWN_TITLES = {"wandb": "Command Line Interface"}
 
 
 def build(output_dir: str = None):
@@ -72,6 +78,8 @@ def markdown_render(command: str, output_dir: str, output_file: str) -> str:
     # Write to the output file
     if usage or summary or options or subcommands:
         write_to_file(output_file, command, usage, summary, options, subcommands)
+        # Format README doc titles to perferred title
+        format_readme_titles(output_file, MARKDOWN_TITLES)
 
     # render markdown for subcommands
     if len(subcommand_list) > 0:
@@ -135,6 +143,8 @@ def parse_help(command: str) -> Tuple[str, str, str]:
 
     help_page = pre_process(help_page)
 
+    full_line = ""
+    tmp = None
     for line in help_page.split("\n"):
         line = line.strip()
         if line in KEYWORDS:  # Keywords contains [Options, Commands]
@@ -144,6 +154,13 @@ def parse_help(command: str) -> Tuple[str, str, str]:
         if keyword is None:
             summary.append(line)
         else:
+            # handle multi line options
+            if keyword == "Options:" and not line.startswith("-"):
+                full_line += " " + line
+                continue
+            elif keyword == "Options:" and line.startswith("-"):
+                tmp = line
+                line = full_line
             # PATTERN helps with option and value
             # eg. --version Shows the version
             # will be captured like
@@ -151,6 +168,9 @@ def parse_help(command: str) -> Tuple[str, str, str]:
             extract = PATTERN.findall(line)
             if extract:
                 parsed_dict[keyword].append([extract[0][0], extract[0][1]])
+            if tmp is not None:
+                full_line = tmp
+                tmp = None
 
     if len(summary) == 0:
         return "", "", parsed_dict
@@ -176,9 +196,12 @@ def pre_process(help_page: str) -> str:
                               nvidia-docker is present
     ```
     We find two types of overflow problems:
-    - new description: Due to the overflow of the option `--sync-tensorboard / --no-sync-tensorboard`
-        the description `Stream tfevent files to wandb.` is sent to the next line.
-    - wrapped description: Due to the overflow of the description `Use the nvidia runtime, defaults to nvidia if`
+    - new description: Due to the overflow of the option
+        `--sync-tensorboard / --no-sync-tensorboard`
+        the description `Stream tfevent files to wandb.`
+        is sent to the next line.
+    - wrapped description: Due to the overflow of the description
+        `Use the nvidia runtime, defaults to nvidia if`
         the rest of the description is wrapped to the next line.
 
     This breaks our parser that looks for lines with `option   description`.
@@ -186,7 +209,8 @@ def pre_process(help_page: str) -> str:
     expects.
     ```bash
     --sync-tensorboard / --no-sync-tensorboard   Stream tfevent files to wandb.
-    --nvidia / --no-nvidia   Use the nvidia runtime, defaults to nvidia if nvidia-docker is present.
+    --nvidia / --no-nvidia   Use the nvidia runtime,
+       defaults to nvidia if nvidia-docker is present.
     ```
 
     Args:
@@ -298,4 +322,5 @@ def prepare_dirs(base_dir, subdir_name):
     subdir = os.path.join(base_dir, subdir_name)
     os.mkdir(path=subdir)
     markdown_file = os.path.join(subdir, "README.md")
+
     return subdir, markdown_file

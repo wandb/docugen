@@ -1,43 +1,53 @@
 name: "Update docs"
-description: "Generate markdown documentation, commit it to a branch of the gitbook repo, and push it"
+description: "Generate markdown documentation, commit it to a branch of the docodile repo, and push it"
 inputs:
-  gitbook-branch:
-    description: "Which branch of wandb/gitbook to update (use 'en' to update the main English docs)"
+  docodile-branch:
+    description: "Which branch of wandb/docodile to update"
     required: true
+    default: main
   core-branch:
     description: "Which branch of wandb/core to use as the source for the docs"
     required: true
     default: master
-  client-branch:
-    description: "Which branch of wandb/client to use as the source for the docs"
+  wandb-branch:
+    description: "Which branch of wandb/wandb to use as the source for the docs"
     required: true
-    default: latest
+    default: main
   access-token:
     description: "Personal access token to use when checking out repos"
     required: true
+  generate-weave-docs:
+    description: "Whether to generate weave documentation"
+    required: false
+    default: 'true'
+  generate-sdk-docs:
+    description: "Whether to generate SDK documentation"
+    required: false
+    default: 'true'
 runs:
   using: "composite"
   steps:
-    - name: checkout gitbook repo
-      uses: actions/checkout@v2
+    - name: checkout docodile repo
+      uses: actions/checkout@v3
       with:
-        repository: wandb/gitbook
-        path: repos/gitbook
-        ref: ${{ inputs.gitbook-branch }}
+        repository: wandb/docodile
+        path: repos/docodile
+        ref: ${{ inputs.docodile-branch }}
         token: ${{ inputs.access-token }}
     # setup: bring in python plus the requirements for generating docs and the new release
     - name: setup python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: "3.9"
-    - name: setup python environment, including wandb client
+    - name: setup python environment, including wandb sdk
       shell: bash
       env:
         VERSION: latest
-      run: python -m pip install -r ${{ github.action_path }}/requirements.txt git+https://github.com/wandb/client.git@$VERSION
+      run: python -m pip install -r ${{ github.action_path }}/requirements.txt git+https://github.com/wandb/wandb.git@${{ inputs.wandb-branch }}
 
     - name: checkout wandb/core
-      uses: actions/checkout@v2
+      if: ${{ inputs.generate-weave-docs == 'true' }}
+      uses: actions/checkout@v3
       with:
         repository: wandb/core
         path: repos/core
@@ -45,50 +55,56 @@ runs:
         token: ${{ inputs.access-token }}
 
     - name: setup node
-      uses: actions/setup-node@v2
+      if: ${{ inputs.generate-weave-docs == 'true' }}
+      uses: actions/setup-node@v3
       with:
-        node-version: "16"
+        node-version: 16
         cache: "yarn"
         cache-dependency-path: repos/core/lib/js/cg/yarn.lock
 
     - name: generate weave documentation
+      if: ${{ inputs.generate-weave-docs == 'true' }}
       shell: bash
       run: |
         yarn --cwd=./repos/core/lib/js/cg --frozen-lockfile
         yarn --cwd=./repos/core/lib/js/cg generate-docs
-        rm -rf ./repos/gitbook/ref/weave/**
-        mkdir -p ./repos/gitbook/ref/weave
-        cp -r ./repos/core/lib/js/cg/docs_gen/* ./repos/gitbook/ref/weave
+        rm -rf ./repos/docodile/docs/ref/weave/**
+        mkdir -p ./repos/docodile/docs/ref/weave
+        cp -r ./repos/core/lib/js/cg/docs_gen/* ./repos/docodile/docs/ref/weave
 
-    # generate the docs from the latest client library and overwrite gitbook contents
+    # generate the docs from the latest sdk library and overwrite docodile contents
     - name: generate SDK documentation
+      if: ${{ inputs.generate-sdk-docs == 'true' }}
       shell: bash
       env:
-        VERSION: latest
         DOCUGEN_CONFIG_PATH: ${{ github.action_path }}/config.ini
-      run: python ${{ github.action_path }}/generate.py --template_file ./repos/gitbook/SUMMARY.md --commit_id $VERSION --output_dir ./repos/gitbook
-
-    # for debugging/tracking, display the generated table of contents
-    - name: display ToC
-      shell: bash
-      run: cat ./repos/gitbook/SUMMARY.md
+      run: |
+        python ${{ github.action_path }}/generate.py  --commit_id ${{ inputs.wandb-branch }} --output_dir ${{ github.action_path }}
+        pwd
+        ls -lhtr ${{ github.action_path }}/ref/**/**
 
     # stage: commit the changes
     - name: commit changes
       shell: bash
-      working-directory: ./repos/gitbook
+      working-directory: ./repos/docodile
+      env:
+        GITHUB_TOKEN: ${{ inputs.access-token }}
       run: |
         # hardcoded to the user ID representing the github actions bot, see:
         # https://github.community/t/github-actions-bot-email-address/17204/6
         # https://api.github.com/users/github-actions%5Bbot%5D
         git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"x
+        git remote set-url origin https://${{ inputs.access-token }}@github.com/wandb/docodile.git ; \
+        git pull origin main
+        git reset --hard origin/main
+        cp -r ${{ github.action_path }}/ref ./docs/
         if [[ `git status --porcelain` ]]; then
+          git checkout -b sdk-${{ inputs.wandb-branch }} ; \
           git add -A .
-          git commit -m "update reference docs to cli@${{ inputs.client-branch }}, core@${{ inputs.core-branch }}"
-          git remote set-url origin https://${{ inputs.access-token }}@github.com/wandb/gitbook.git ; \
-          git pull ; \
-          git push ; \
+          git commit -m "Update reference docs to sdk@${{ inputs.wandb-branch }}, core@${{ inputs.core-branch }} using https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA"
+          git push origin sdk-${{ inputs.wandb-branch }}; \
+          gh pr create --base main --head sdk-${{ inputs.wandb-branch }} --title "Update reference docs to sdk@${{ inputs.wandb-branch }}, core@${{ inputs.core-branch }}" --body "Used https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA"
         else
           echo "Documentation has not changed; skipping commit/push" ;
         fi

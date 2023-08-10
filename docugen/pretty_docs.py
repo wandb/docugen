@@ -361,11 +361,12 @@ def _build_method_section(method_info, heading_level=3):
       A markdown string.
     """
     parts = []
-    heading = (
-        '<h{heading_level} id="{short_name}">'
-        "<code>{short_name}</code>"
-        "</h{heading_level}>\n\n"
-    )
+    # heading = (
+    #     '<h{heading_level} id="{short_name}">'
+    #     "<code>{short_name}</code>"
+    #     "</h{heading_level}>\n\n"
+    # )
+    heading = "#" * heading_level + " `{short_name}`\n\n"
     parts.append(heading.format(heading_level=heading_level, **method_info._asdict()))
 
     if method_info.defined_in:
@@ -486,7 +487,7 @@ DECORATOR_ALLOWLIST = {
 def _build_signature(
     obj_info: parser.PageInfo, obj_name: str, type_alias: bool = False
 ) -> str:
-    """Returns a markdown code block containing the function signature.
+    """Returns a Markdown code block containing the function signature.
 
     Wraps the signature and limits it to 80 characters.
 
@@ -507,8 +508,8 @@ def _build_signature(
         return textwrap.dedent(
             """
       ```python
-      tf.range(limit, delta=1, dtype=None, name='range')
-      tf.range(start, limit, delta=1, dtype=None, name='range')
+      tf.range(limit, delta=1, dtype=None, name="range")
+      tf.range(start, limit, delta=1, dtype=None, name="range")
       ```
       """
         )
@@ -519,11 +520,7 @@ def _build_signature(
 
     if hasattr(obj_info, "decorators"):
         parts.extend(
-            [
-                f"@{dec}\n"
-                for dec in obj_info.decorators
-                if dec in DECORATOR_ALLOWLIST
-            ]
+            [f"@{dec}\n" for dec in obj_info.decorators if dec in DECORATOR_ALLOWLIST]
         )
 
     if type_alias:
@@ -549,11 +546,31 @@ _TABLE_TEMPLATE = textwrap.dedent(
     {table_footer}"""
 )
 
-_TABLE_LINK_TEMPLATE = """[![](https://www.tensorflow.org/images/GitHub-Mark-32px.png)View source on GitHub]({url})"""
+# _TABLE_LINK_TEMPLATE = (
+#     "[![](https://www.tensorflow.org/images/GitHub-Mark-32px.png)"
+#     " View source on GitHub]({url})"
+# )
+
+_TABLE_LINK_TEMPLATE = (
+    "<p>"
+    "<button style={{{{display: 'flex', alignItems: 'center', "
+    "backgroundColor: 'white', border: '1px solid #ddd', padding: '10px', "
+    "borderRadius: '6px', cursor: 'pointer', "
+    "boxShadow: '0 2px 3px rgba(0,0,0,0.1)', transition: 'all 0.3s'}}}}>"
+    "<a href='{url}' style={{{{fontSize: '1.2em', "
+    "display: 'flex', alignItems: 'center'}}}}>"
+    "<img "
+    "src='https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png'"
+    " height='32px' width='32px' style={{{{marginRight: '10px'}}}}/>"
+    "View source on GitHub"
+    "</a>"
+    "</button>"
+    "</p>"
+)
 
 
 def _top_source_link(location):
-    """Retrns a source link with Github image, like the notebook butons."""
+    """Returns a source link with GitHub image, like the notebook buttons."""
 
     table_content = ""
     table_footer = ""
@@ -575,7 +592,7 @@ def _top_source_link(location):
 
 def _small_source_link(location):
     """Returns a small source link."""
-    template = '[View source]({url})\n\n'
+    template = "[View source]({url})\n\n"
 
     if not location.url:
         return ""

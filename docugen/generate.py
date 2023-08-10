@@ -2,10 +2,14 @@
 
 import os
 import pathlib
+import re
 import shutil
 import tempfile
 
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Type, Union
+
+import mistune
+from mistune.renderers.markdown import MarkdownRenderer
 
 from docugen import doc_generator_visitor
 from docugen import parser
@@ -13,7 +17,23 @@ from docugen import pretty_docs
 from docugen import public_api
 from docugen import traverse
 
-EXCLUDED = set(["__init__.py", "OWNERS", "README.txt"])
+
+EXCLUDED = {"__init__.py", "OWNERS", "README.txt"}
+
+
+def multiple_replace(text: str, dictionary: Dict[str, str]) -> str:
+    """
+    Checks characters defined in dictionary and replaces them with desired output.
+    Args:
+        text (str): A string that contains markdown content.
+        dictionary (dict): A dictionary with key-value pairs
+            {current_string : desired_string}
+    """
+    # Create a regular expression  from the dictionary keys
+    regex = re.compile("(%s)" % "|".join(map(re.escape, dictionary.keys())))
+
+    # For each match, look-up corresponding value in dictionary
+    return regex.sub(lambda mo: dictionary[mo.string[mo.start() : mo.end()]], text)
 
 
 class DocGenerator:
@@ -217,7 +237,7 @@ class DocGenerator:
             if full_name in parser_config.duplicate_of:
                 continue
 
-            # Methods constants are only documented only as part of their parent's page.
+            # Methods constants are documented only as part of their parent's page.
             if parser_config.reference_resolver.is_fragment(full_name):
                 continue
 
@@ -238,7 +258,22 @@ class DocGenerator:
 
             content = []
             content.append(pretty_docs.build_md_page(page_info))
-            text = "\n".join(content)
+
+            # Clean up markdown and remove characters that break Docusuarus
+            dictionary = {
+                "\_": "_",
+                "\*": "*",
+                "\*\*": "**",
+                "&quot;": '"',
+            }
+
+            markdown_renderer = mistune.create_markdown(renderer=MarkdownRenderer())
+
+            markdown_content = markdown_renderer("\n".join(content))
+
+            # Remove undesirable characters and/or clean artifacts from markdown convert
+            text = multiple_replace(markdown_content, dictionary)
+
             try:
                 path.parent.mkdir(exist_ok=True, parents=True)
                 path.write_text(text, encoding="utf-8")
@@ -274,7 +309,7 @@ class DocGenerator:
           private_map: A {'path':["name"]} dictionary listing particular object
             locations that should be ignored in the doc generator.
           visitor_cls: A class, typically a subclass of
-            `doc_generator_visitor.DocGeneratorVisitor` that acumulates the indexes of
+            `doc_generator_visitor.DocGeneratorVisitor` that accumulates the indexes of
             objects to document.
           callbacks: Additional callbacks passed to `traverse`. Executed between the
             `PublicApiFilter` and the accumulator (`DocGeneratorVisitor`). The
