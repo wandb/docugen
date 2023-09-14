@@ -25,7 +25,7 @@ subconfig_names = config["SUBCONFIGS"]["names"].split(",")
 
 subconfigs = util.process_subconfigs(config, subconfig_names)
 
-WANDB_CORE, WANDB_DATATYPES, WANDB_API, WANDB_INTEGRATIONS = subconfigs
+WANDB_CORE, WANDB_DATATYPES, WANDB_API, WANDB_INTEGRATIONS, WANDB_LAUNCH = subconfigs
 
 
 def format_readme_titles(readme_file_path: str, markdown_titles: dict):
@@ -70,6 +70,12 @@ def build(commit_id, code_url_prefix, output_dir):
     build_docs_from_config(WANDB_API, commit_id, code_url_prefix, modules_output_dir)
     build_docs_from_config(
         WANDB_INTEGRATIONS,
+        commit_id,
+        code_url_prefix,
+        modules_output_dir,
+    )
+    build_docs_from_config(
+        WANDB_LAUNCH,
         commit_id,
         code_url_prefix,
         modules_output_dir,
