@@ -149,7 +149,7 @@ def configure_doc_hiding():
         wandb.data_types.WBValue,
         wandb.data_types.Media,
         wandb.data_types.BatchableMedia,
-        wandb.apis.public.Paginator,
+        # wandb.apis.public.Paginator,
     ]
 
     for cls in base_classes:
