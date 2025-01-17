@@ -60,6 +60,9 @@ def main(args):
     # clean up the file names
     clean_names(ref_dir)
 
+    # Fix frontmatter
+    reformat_title_to_frontmatter(ref_dir)
+
 
 def rename_to_readme(directory):
     """Moves all folder-level markdown files into respective folders, as a README."""
@@ -89,6 +92,28 @@ def clean_names(directory):
                 os.path.join(f"{root}", f"{name}"),
                 os.path.join(f"{root}", f"{short_name}"),
             )
+
+
+def reformat_title_to_frontmatter(directory):
+    "Fixes the title in the frontmatter of markdown files. Required for Hugo."
+ 
+    for root, _, files in os.walk(directory):
+        for file in files:
+            if file.endswith(".md"):  # Only process markdown files
+                file_path = os.path.join(root, file)
+
+                with open(file_path, "r", encoding="utf-8") as f:
+                    lines = f.readlines()
+
+                if lines and lines[0].startswith("title:"):
+                    # Reformat to markdown frontmatter
+                    frontmatter = f"---\n{lines[0].strip()}\n---\n"
+
+                    # Write back to the file with the updated format
+                    with open(file_path, "w", encoding="utf-8") as f:
+                        f.write(frontmatter)
+                        f.writelines(lines[1:])  # Write the rest of the file
+
 
 
 def single_folder_format(directory):
