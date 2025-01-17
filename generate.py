@@ -63,6 +63,9 @@ def main(args):
     # Fix frontmatter
     reformat_title_to_frontmatter(ref_dir)
 
+    # Rename README.md to _index.md
+    rename_readme_to_index(ref_dir)
+
 
 def rename_to_readme(directory):
     """Moves all folder-level markdown files into respective folders, as a README."""
@@ -141,6 +144,17 @@ def single_folder_format(directory):
                     os.path.join(f"{parent_root}", f"{cwd}.md"),
                 )
                 os.rmdir(root)
+
+def rename_readme_to_index(directory):
+    for root, _, files in os.walk(directory):
+        for file in files:
+            if file == "README.md":  # Only target README.md files
+                old_path = os.path.join(root, file)
+                new_path = os.path.join(root, "_index.md")
+
+                # Rename the file
+                os.rename(old_path, new_path)
+                print(f"Renamed: {old_path} -> {new_path}")
 
 
 def get_args():
