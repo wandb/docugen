@@ -71,7 +71,14 @@ def _build_function_page(page_info: parser.FunctionPageInfo) -> str:
     Returns:
       The function markdown page.
     """
-    parts = [f'# {page_info.full_name.split(".")[-1]}\n\n']
+    
+    # Add the full_name of the symbol to the page.
+    title_frontmatter = f'title: {page_info.full_name.split(".")[-1]}'
+
+    parts  = []
+    parts.append(title_frontmatter) 
+
+    parts.append("\n\n")
 
     parts.append(_top_source_link(page_info.defined_in))
     parts.append("\n\n")
@@ -216,9 +223,13 @@ def _build_class_page(page_info: parser.ClassPageInfo) -> str:
     Returns:
       The class markdown page.
     """
-
     # Add the full_name of the symbol to the page.
-    parts = [f'# {page_info.full_name.split(".")[-1]}\n\n']
+    title_frontmatter = f'title: {page_info.full_name.split(".")[-1]}'
+
+    parts  = []
+    parts.append(title_frontmatter) 
+
+    parts.append("\n\n")
 
     # Add the github button.
     parts.append(_top_source_link(page_info.defined_in))
@@ -413,8 +424,13 @@ def _build_module_page(page_info: parser.ModulePageInfo) -> str:
     Returns:
       The module markdown page.
     """
+    
+    title_frontmatter = f'title: {page_info.full_name.split(".")[-1]}'
+    
+    parts  = []
+    parts.append(title_frontmatter) 
 
-    parts = [f'# {page_info.full_name.split(".")[-1]}\n\n']
+    parts.append("\n\n")
 
     parts.append("<!-- Insert buttons and diff -->\n")
 
@@ -533,39 +549,15 @@ def _build_signature(
     return "".join(parts)
 
 
-TABLE_HEADER = (
-    # '<table class="tfo-notebook-buttons tfo-api nocontent" align="left">'
-    ""
-)
-
 _TABLE_TEMPLATE = textwrap.dedent(
     """
-    {table_header}
     {table_content}
-
     {table_footer}"""
 )
 
-# _TABLE_LINK_TEMPLATE = (
-#     "[![](https://www.tensorflow.org/images/GitHub-Mark-32px.png)"
-#     " View source on GitHub]({url})"
-# )
 
 _TABLE_LINK_TEMPLATE = (
-    "<p>"
-    "<button style={{{{display: 'flex', alignItems: 'center', "
-    "backgroundColor: 'white', border: '1px solid #ddd', padding: '10px', "
-    "borderRadius: '6px', cursor: 'pointer', "
-    "boxShadow: '0 2px 3px rgba(0,0,0,0.1)', transition: 'all 0.3s'}}}}>"
-    "<a href='{url}' style={{{{fontSize: '1.2em', "
-    "display: 'flex', alignItems: 'center'}}}}>"
-    "<img "
-    "src='https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png'"
-    " height='32px' width='32px' style={{{{marginRight: '10px'}}}}/>"
-    "View source on GitHub"
-    "</a>"
-    "</button>"
-    "</p>"
+    '{{< cta-button githubLink="{url}" >}}'
 )
 
 
@@ -582,7 +574,6 @@ def _top_source_link(location):
             table_content = _TABLE_LINK_TEMPLATE.format(url=location.url)
 
     table = _TABLE_TEMPLATE.format(
-        table_header=TABLE_HEADER,
         table_content=table_content,
         table_footer=table_footer,
     )

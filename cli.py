@@ -16,7 +16,7 @@ PATTERN = re.compile(r"(.*?)  +(.*)")
 #           ) - End of group
 
 KEYWORDS = ["Options:", "Commands:"]
-TEMPLATE = "# {}\n\n{}\n\n{}\n{}\n{}"
+TEMPLATE = "---\ntitle: {}\n---"
 
 # Replace auto-genearted title as a key, provide the preferred title as the value
 MARKDOWN_TITLES = {"wandb": "Command Line Interface"}
