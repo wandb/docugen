@@ -149,42 +149,6 @@ def single_folder_format(directory):
                 os.rmdir(root)
 
 
-def reformat_and_rename_readme(directory, title_mapping):
-    for root, _, files in os.walk(directory):
-        for file in files:
-            if file == "README.md" or file == "_index.md":
-                file_path = os.path.join(root, file)
-                
-                with open(file_path, "r", encoding="utf-8") as f:
-                    lines = f.readlines()
-
-                # Process the lines
-                updated_lines = []
-                for line in lines:
-                    # Remove CTA buttons
-                    if re.match(r"\{\{\<\s*cta-button.*?\>\}\}", line.strip()):
-                        continue
-                    
-                    # Update the title
-                    if line.startswith("title:"):
-                        old_title = line[len("title:"):].strip()
-                        # Check if the title is in the mapping
-                        new_title = title_mapping.get(old_title, old_title.capitalize())
-                        line = f"title: {new_title}\n"
-                    
-                    updated_lines.append(line)
-
-                # Rename README.md to _index.md
-                new_file_path = os.path.join(root, "_index.md")
-                if file == "README.md":
-                    os.rename(file_path, new_file_path)
-                    file_path = new_file_path
-
-                # Write back the updated file
-                with open(file_path, "w", encoding="utf-8") as f:
-                    f.writelines(updated_lines)
-                print(f"Processed: {file_path}")
-
 # def reformat_and_rename_readme(directory, title_mapping):
 #     for root, _, files in os.walk(directory):
 #         for file in files:
@@ -193,35 +157,73 @@ def reformat_and_rename_readme(directory, title_mapping):
                 
 #                 with open(file_path, "r", encoding="utf-8") as f:
 #                     lines = f.readlines()
-                
-#                 # Remove CTA buttons
-#                 cleaned_lines = [
-#                     line for line in lines 
-#                     if not re.match(r"\{\{\<\s*cta-button.*?\>\}\}", line.strip())
-#                 ]
 
-#                 # Replace title values
-#                 for i, line in enumerate(cleaned_lines):
-#                     if line.strip().startswith("title:"):
-#                         title_line = line.strip()
-#                         old_title = title_line[len("title:"):].strip()
-#                         # Remove quotes if present
-#                         old_title = old_title.strip('"').strip("'")
-#                         if old_title in title_mapping:
-#                             new_title = title_mapping[old_title]
-#                             cleaned_lines[i] = f"title: {new_title}\n"
-#                         break  # Only process the first title
+#                 # Process the lines
+#                 updated_lines = []
+#                 for line in lines:
+#                     # Remove CTA buttons
+#                     if re.match(r"\{\{\<\s*cta-button.*?\>\}\}", line.strip()):
+#                         continue
+                    
+#                     # Update the title
+#                     if line.startswith("title:"):
+#                         old_title = line[len("title:"):].strip()
+#                         # Check if the title is in the mapping
+#                         new_title = title_mapping.get(old_title, old_title.capitalize())
+#                         line = f"title: {new_title}\n"
+                    
+#                     updated_lines.append(line)
 
 #                 # Rename README.md to _index.md
 #                 new_file_path = os.path.join(root, "_index.md")
 #                 if file == "README.md":
 #                     os.rename(file_path, new_file_path)
 #                     file_path = new_file_path
-                
-#                 # Write back the cleaned and updated file
+
+#                 # Write back the updated file
 #                 with open(file_path, "w", encoding="utf-8") as f:
-#                     f.writelines(cleaned_lines)
+#                     f.writelines(updated_lines)
 #                 print(f"Processed: {file_path}")
+
+def reformat_and_rename_readme(directory, title_mapping):
+    for root, _, files in os.walk(directory):
+        for file in files:
+            if file == "README.md" or file == "_index.md":
+                file_path = os.path.join(root, file)
+                
+                with open(file_path, "r", encoding="utf-8") as f:
+                    lines = f.readlines()
+                
+                # Remove CTA buttons using regex
+                cleaned_lines = [
+                    line for line in lines 
+                    if not re.match(r"\{\{\<\s*cta-button.*?\>\}\}", line.strip())
+                ]
+
+                # Update the title in the frontmatter
+                for i, line in enumerate(cleaned_lines):
+                    if line.strip().startswith("title:"):
+                        # Extract the old title value
+                        match = re.match(r"title:\s*(.+)", line.strip())
+                        if match:
+                            old_title = match.group(1).strip()
+                            # Check if the old title is in the dictionary
+                            if old_title in title_mapping:
+                                new_title = title_mapping[old_title]
+                                # Replace the line with the new title
+                                cleaned_lines[i] = f"title: {new_title}\n"
+                                print(f"Updated title: {old_title} -> {new_title}")
+
+                # Rename README.md to _index.md
+                new_file_path = os.path.join(root, "_index.md")
+                if file == "README.md":
+                    os.rename(file_path, new_file_path)
+                    file_path = new_file_path
+                
+                # Write back the cleaned and updated file
+                with open(file_path, "w", encoding="utf-8") as f:
+                    f.writelines(cleaned_lines)
+                print(f"Processed: {file_path}")
 
 title_mapping = {
     "python": "Python Library",
