@@ -60,6 +60,15 @@ def _format_docstring(item, *, table_title_template: Optional[str] = None) -> st
         return str(item)
 
 
+def _github_button(href_links):
+    """To do: Add hugo scripting to add this function. For now, just add code line # for debugging.
+    
+    Args:
+        href_links (str): URL for the GitHub button.
+    """
+    return "{{< cta-button githubLink=" + href_links.url + " >}}"+ "\n\n"
+
+
 def _build_function_page(page_info: parser.FunctionPageInfo) -> str:
     """Constructs a markdown page given a `FunctionPageInfo` object.
 
@@ -80,7 +89,10 @@ def _build_function_page(page_info: parser.FunctionPageInfo) -> str:
 
     parts.append("\n\n")
 
-    parts.append(_top_source_link(page_info.defined_in))
+    # Add the github button.
+    if page_info.defined_in and page_info.defined_in.url:
+        parts.append(_github_button(page_info.defined_in))    
+
     parts.append("\n\n")
 
     parts.append(page_info.doc.brief + "\n\n")
@@ -232,7 +244,9 @@ def _build_class_page(page_info: parser.ClassPageInfo) -> str:
     parts.append("\n\n")
 
     # Add the github button.
-    parts.append(_top_source_link(page_info.defined_in))
+    if page_info.defined_in and page_info.defined_in.url:
+        parts.append(_github_button(page_info.defined_in))      
+
     parts.append("\n\n")
 
     # Add the one line docstring of the class.
@@ -434,7 +448,10 @@ def _build_module_page(page_info: parser.ModulePageInfo) -> str:
 
     parts.append("<!-- Insert buttons and diff -->\n")
 
-    parts.append(_top_source_link(page_info.defined_in))
+    # Add the github button.
+    if page_info.defined_in and page_info.defined_in.url:
+        parts.append(_github_button(page_info.defined_in))  
+
     parts.append("\n\n")
 
     # First line of the docstring i.e. a brief introduction about the symbol.

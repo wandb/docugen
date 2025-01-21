@@ -15,6 +15,8 @@ import wandb
 import cli
 import library
 
+import re
+
 
 # Replace auto-generated title as a key, provide the preferred title as the value
 MARKDOWN_TITLES = {
@@ -64,7 +66,7 @@ def main(args):
     reformat_title_to_frontmatter(ref_dir)
 
     # Rename README.md to _index.md
-    rename_readme_to_index(ref_dir)
+    reformat_and_rename_readme(ref_dir, title_mapping)
 
 
 def rename_to_readme(directory):
@@ -145,17 +147,49 @@ def single_folder_format(directory):
                 )
                 os.rmdir(root)
 
-def rename_readme_to_index(directory):
+
+def reformat_and_rename_readme(directory, title_mapping):
     for root, _, files in os.walk(directory):
         for file in files:
-            if file == "README.md":  # Only target README.md files
-                old_path = os.path.join(root, file)
-                new_path = os.path.join(root, "_index.md")
+            if file == "README.md" or file == "_index.md":
+                file_path = os.path.join(root, file)
+                
+                with open(file_path, "r", encoding="utf-8") as f:
+                    lines = f.readlines()
 
-                # Rename the file
-                os.rename(old_path, new_path)
-                print(f"Renamed: {old_path} -> {new_path}")
+                # Process the lines
+                updated_lines = []
+                for line in lines:
+                    # Remove CTA buttons
+                    if re.match(r"\{\{\<\s*cta-button.*?\>\}\}", line.strip()):
+                        continue
+                    
+                    # Update the title
+                    if line.startswith("title:"):
+                        old_title = line[len("title:"):].strip()
+                        # Check if the title is in the mapping
+                        new_title = title_mapping.get(old_title, old_title.capitalize())
+                        line = f"title: {new_title}\n"
+                    
+                    updated_lines.append(line)
 
+                # Rename README.md to _index.md
+                new_file_path = os.path.join(root, "_index.md")
+                if file == "README.md":
+                    os.rename(file_path, new_file_path)
+                    file_path = new_file_path
+
+                # Write back the updated file
+                with open(file_path, "w", encoding="utf-8") as f:
+                    f.writelines(updated_lines)
+                print(f"Processed: {file_path}")
+
+title_mapping = {
+    "python": "Python Library",
+    "data-types": "Data Types",
+    "integrations": "Integrations",
+    "public-api": "Import & Export API",
+}
 
 def get_args():
     parser = argparse.ArgumentParser(
