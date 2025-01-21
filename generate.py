@@ -19,6 +19,7 @@ import re
 
 
 # Replace auto-generated title as a key, provide the preferred title as the value
+# Note: This is replaced by Hugo. Future, remove this and function that calls it.
 MARKDOWN_TITLES = {
     "python": "Python Library",
     "data-types": "Data Types",
@@ -27,6 +28,15 @@ MARKDOWN_TITLES = {
     "ref": "Reference",
     "keras": "Keras",
     "weave": "Weave",
+}
+
+
+title_mapping = {
+    "python": "Python Library",
+    "data-types": "Data Types",
+    "integrations": "Integrations",
+    "public-api": "Import & Export API",
+    "wandb": "Command Line Interface"
 }
 
 
@@ -190,13 +200,6 @@ def reformat_and_rename_readme(directory, title_mapping):
                     f.writelines(cleaned_lines)
                 print(f"Processed: {file_path}")
 
-title_mapping = {
-    "python": "Python Library",
-    "data-types": "Data Types",
-    "integrations": "Integrations",
-    "public-api": "Import & Export API",
-    "wandb": "Command Line Interface"
-}
 
 def get_args():
     parser = argparse.ArgumentParser(
