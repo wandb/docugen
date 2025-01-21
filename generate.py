@@ -195,6 +195,7 @@ title_mapping = {
     "data-types": "Data Types",
     "integrations": "Integrations",
     "public-api": "Import & Export API",
+    "wandb": "Command Line Interface"
 }
 
 def get_args():
