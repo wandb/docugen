@@ -16,11 +16,19 @@ PATTERN = re.compile(r"(.*?)  +(.*)")
 #           ) - End of group
 
 KEYWORDS = ["Options:", "Commands:"]
-TEMPLATE = "---\ntitle: {}\n---"
 
-# Replace auto-genearted title as a key, provide the preferred title as the value
-MARKDOWN_TITLES = {"wandb": "Command Line Interface"}
+TEMPLATE = """---
+title: {}
+---
 
+{}
+
+{}
+
+{}
+
+{}
+"""
 
 def build(output_dir: str = None):
     """
@@ -54,6 +62,7 @@ def markdown_render(command: str, output_dir: str, output_file: str) -> str:
         str: The output directory
     """
     usage, summary, parsed_dict = parse_help(command)
+
     if usage:
         # Document usage
         usage = usage.split(":")
@@ -78,8 +87,6 @@ def markdown_render(command: str, output_dir: str, output_file: str) -> str:
     # Write to the output file
     if usage or summary or options or subcommands:
         write_to_file(output_file, command, usage, summary, options, subcommands)
-        # Format README doc titles to perferred title
-        format_readme_titles(output_file, MARKDOWN_TITLES)
 
     # render markdown for subcommands
     if len(subcommand_list) > 0:
@@ -308,6 +315,7 @@ def parse_description(element):
 
 def write_to_file(output_file, command, usage, summary, options, subcommands):
     """Write contents to the output_file based on TEMPLATE"""
+
 
     contents = TEMPLATE.format(command, usage, summary, options, subcommands)
     with open(output_file, "w") as fp:
