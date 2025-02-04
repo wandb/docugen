@@ -265,7 +265,7 @@ def get_options_markdown(options):
         arg = parse_description(element)
         desc = element[1]
         # concatenate all the options
-        options_md += f"""| {arg} | {desc} |\n"""
+        options_md += f"""| `{arg}` | {desc} |\n"""
 
     options_md = (
         """**Options**\n\n| **Option** | **Description** |\n| :--- | :--- |\n"""
