@@ -98,7 +98,7 @@ runs:
         git remote set-url origin https://${{ inputs.access-token }}@github.com/wandb/docodile.git ; \
         git pull origin main
         git reset --hard origin/main
-        cp -r ${{ github.action_path }}/ref ./docs/content/ref/
+        cp -r ${{ github.action_path }}/ref ./docs/content/
         if [[ `git status --porcelain` ]]; then
           git checkout -b sdk-${{ inputs.wandb-branch }} ; \
           git add -A .
