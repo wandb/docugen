@@ -1,8 +1,8 @@
 name: "Update docs"
-description: "Generate markdown documentation, commit it to a branch of the docodile repo, and push it"
+description: "Generate markdown documentation, commit it to a branch of the docs repo, and push it"
 inputs:
-  docodile-branch:
-    description: "Which branch of wandb/docodile to update"
+  docs-branch:
+    description: "Which branch of wandb/docs to update"
     required: true
     default: main
   core-branch:
@@ -27,12 +27,12 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: checkout docodile repo
+    - name: checkout docs repo
       uses: actions/checkout@v3
       with:
-        repository: wandb/docodile
-        path: repos/docodile
-        ref: ${{ inputs.docodile-branch }}
+        repository: wandb/docs
+        path: repos/docs
+        ref: ${{ inputs.docs-branch }}
         token: ${{ inputs.access-token }}
     # setup: bring in python plus the requirements for generating docs and the new release
     - name: setup python
@@ -62,17 +62,17 @@ runs:
         cache: "yarn"
         cache-dependency-path: repos/core/lib/js/cg/yarn.lock
 
-    - name: generate weave documentation
-      if: ${{ inputs.generate-weave-docs == 'true' }}
-      shell: bash
-      run: |
-        yarn --cwd=./repos/core/lib/js/cg --frozen-lockfile
-        yarn --cwd=./repos/core/lib/js/cg generate-docs
-        rm -rf ./repos/docodile/docs/ref/weave/**
-        mkdir -p ./repos/docodile/docs/ref/weave
-        cp -r ./repos/core/lib/js/cg/docs_gen/* ./repos/docodile/docs/ref/weave
+    # - name: generate weave documentation
+    #   if: ${{ inputs.generate-weave-docs == 'true' }}
+    #   shell: bash
+    #   run: |
+    #     yarn --cwd=./repos/core/lib/js/cg --frozen-lockfile
+    #     yarn --cwd=./repos/core/lib/js/cg generate-docs
+    #     rm -rf ./repos/docodile/docs/ref/weave/**
+    #     mkdir -p ./repos/docodile/docs/ref/weave
+    #     cp -r ./repos/core/lib/js/cg/docs_gen/* ./repos/docodile/docs/ref/weave
 
-    # generate the docs from the latest sdk library and overwrite docodile contents
+    # generate the docs from the latest sdk library and overwrite docs contents
     - name: generate SDK documentation
       if: ${{ inputs.generate-sdk-docs == 'true' }}
       shell: bash
@@ -86,7 +86,7 @@ runs:
     # stage: commit the changes
     - name: commit changes
       shell: bash
-      working-directory: ./repos/docodile
+      working-directory: ./repos/docs
       env:
         GITHUB_TOKEN: ${{ inputs.access-token }}
       run: |
@@ -95,10 +95,10 @@ runs:
         # https://api.github.com/users/github-actions%5Bbot%5D
         git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"x
-        git remote set-url origin https://${{ inputs.access-token }}@github.com/wandb/docodile.git ; \
+        git remote set-url origin https://${{ inputs.access-token }}@github.com/wandb/docs.git ; \
         git pull origin main
         git reset --hard origin/main
-        cp -r ${{ github.action_path }}/ref ./docs/content/
+        cp -r ${{ github.action_path }}/ref ./content/
         if [[ `git status --porcelain` ]]; then
           git checkout -b sdk-${{ inputs.wandb-branch }} ; \
           git add -A .
