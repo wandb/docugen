@@ -5,18 +5,12 @@ import pathlib
 import re
 import shutil
 import tempfile
-
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Type, Union
 
 import mistune
 from mistune.renderers.markdown import MarkdownRenderer
 
-from docugen import doc_generator_visitor
-from docugen import parser
-from docugen import pretty_docs
-from docugen import public_api
-from docugen import traverse
-
+from docugen import doc_generator_visitor, parser, pretty_docs, public_api, traverse
 
 EXCLUDED = {"__init__.py", "OWNERS", "README.txt"}
 
@@ -166,11 +160,7 @@ class DocGenerator:
             root_module_name=self._short_name.replace(".", "/"),
         )
 
-        try:
-            os.makedirs(output_dir)
-        except OSError as e:
-            if e.strerror != "File exists":
-                raise
+        os.makedirs(output_dir, exist_ok=True)
 
         # Typical results are something like:
         #
@@ -261,9 +251,9 @@ class DocGenerator:
 
             # Clean up markdown and remove characters that break Docusuarus
             dictionary = {
-                "\_": "_",
-                "\*": "*",
-                "\*\*": "**",
+                "\\_": "_",
+                "\\*": "*",
+                "\\*\\*": "**",
                 "&quot;": '"',
             }
 

@@ -2,6 +2,7 @@
 
 import ast
 import collections
+import dataclasses
 import enum
 import html
 import inspect
@@ -9,15 +10,13 @@ import os
 import re
 import textwrap
 import typing
-
-from typing import Any, Dict, List, Tuple, Iterable, NamedTuple, Optional, Union
+from typing import Any, Dict, Iterable, List, NamedTuple, Optional, Tuple, Union
 
 import astor
-import dataclasses
+import pydantic
+from typing_extensions import Annotated, get_origin
 
-from docugen import doc_controls
-from docugen import doc_generator_visitor
-from docugen import public_api
+from docugen import doc_controls, doc_generator_visitor, public_api
 
 
 class ObjType(enum.Enum):
@@ -36,12 +35,18 @@ def get_obj_type(py_obj: Any) -> ObjType:
         return ObjType.MODULE
     elif inspect.isclass(py_obj):
         return ObjType.CLASS
-    elif callable(py_obj):
+    # `Annotated` type aliases are callable, but don't treat them as normal functions
+    elif callable(py_obj) and not is_annotated_alias(py_obj):
         return ObjType.CALLABLE
     elif isinstance(py_obj, property):
         return ObjType.PROPERTY
     else:
         return ObjType.OTHER
+
+
+def is_annotated_alias(obj: Any) -> bool:
+    """Return True if the object is an `Annotated` generic type alias."""
+    return get_origin(obj) is Annotated
 
 
 class ParserConfig(object):
@@ -1157,6 +1162,7 @@ def generate_signature(
         # A wide-variety of errors can be thrown here.
         pass
 
+
     type_annotations = type_annotation_visitor.annotation_dict
     arguments_typehint_exists = type_annotation_visitor.arguments_typehint_exists
     return_typehint_exists = type_annotation_visitor.return_typehint_exists
@@ -1615,15 +1621,37 @@ class ClassPageInfo(PageInfo):
         ]:
             return
 
+        # Also don't bother with custom operator dunder methods, as they aren't
+        # meant to be called directly as methods.  Instead, their implementation is
+        # meant to overload operator behavior and is better demonstrated through examples.
+        operator_dunder_names = {
+            "__and__",
+            "__rand__",
+            "__or__",
+            "__ror__",
+            "__xor__",
+            "__rxor__",
+            "__rshift__",
+            "__rrshift__",
+            "__lshift__",
+            "__rlshift__",
+            "__invert__",
+            "__neg__",
+            "__pos__",
+            "__abs__",
+            "__round__",
+            "__ceil__",
+            "__floor__",
+        }
+        if member_info.short_name in operator_dunder_names:
+            return
+
         # If the curent class py_object is a dataclass then use the class object
         # instead of the __init__ method object because __init__ is a
         # generated method on dataclasses and `inspect.getsource` doesn't work
         # on generated methods (as the source file doesn't exist) which is
         # required for signature generation.
-        if (
-            dataclasses.is_dataclass(self.py_object)
-            and member_info.short_name == "__init__"
-        ):
+        if dataclasses.is_dataclass(self.py_object):
             py_obj = self.py_object
         else:
             py_obj = member_info.py_object
@@ -1767,6 +1795,31 @@ class ClassPageInfo(PageInfo):
         attrs.update(self._namedtuplefields)
         # the contents of the `Attrs:` block from the docstring
         attrs.update(raw_attrs)
+
+        # pydantic fields
+        if issubclass(self.py_object, pydantic.BaseModel):
+            # Drop fields that should be hidden.  For now, assume `repr=False`
+            # communicates intent to hide the field.
+            kept_field_names = {
+                name
+                for name, field_info in self.py_object.model_fields.items()
+                if field_info.repr
+            }
+
+            # Inherit missing descriptions from parent pydantic classes
+            field_docs = {}
+            for cls_ in self.py_object.__mro__:
+                if not issubclass(cls_, pydantic.BaseModel):
+                    continue
+                for name, field_info in cls_.model_fields.items():
+                    if (
+                        (name in kept_field_names)
+                        and (not field_docs.get(name))
+                        and (desc := field_info.description)
+                    ):
+                        field_docs[name] = desc
+
+            attrs.update(field_docs)
 
         # properties and dataclass fields last.
         for name, desc in self._properties.items():

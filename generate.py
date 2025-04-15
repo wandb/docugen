@@ -8,15 +8,13 @@ python generate.py --help
 """
 import argparse
 import os
+import re
 import shutil
 
 import wandb
 
 import cli
 import library
-
-import re
-
 
 # Replace auto-generated title as a key, provide the preferred title as the value
 # Note: This is replaced by Hugo. Future, remove this and function that calls it.

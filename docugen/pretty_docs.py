@@ -5,11 +5,9 @@ necessary to document an element of a Python API.
 """
 
 import textwrap
+from typing import Dict, List, NamedTuple, Optional
 
-from typing import Dict, List, Optional, NamedTuple
-
-from docugen import doc_controls
-from docugen import parser
+from docugen import doc_controls, parser
 
 _TABLE_ITEMS = ("arg", "return", "raise", "attr", "yield")
 

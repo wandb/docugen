@@ -2,7 +2,6 @@
 
 import collections
 import inspect
-
 from typing import Any, Dict, List, Optional, Tuple
 
 ApiPath = Tuple[str, ...]
@@ -30,7 +29,7 @@ def maybe_singleton(py_object: Any) -> bool:
     is_immutable_type = isinstance(py_object, immutable_types)
 
     # Check if the object is the empty tuple.
-    return is_immutable_type or py_object == ()
+    return is_immutable_type or (isinstance(py_object, tuple) and py_object == ())
 
 
 class ApiTreeNode(object):
