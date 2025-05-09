@@ -1,15 +1,17 @@
+from __future__ import annotations
+
 import configparser
-from importlib import import_module
+import enum
+import fileinput
 import operator
 import os
-import fileinput
+from importlib import import_module
 
+import pydantic
 import wandb
 
-from docugen import doc_controls
-from docugen import generate
-
 import util
+from docugen import doc_controls, generate
 
 config = configparser.ConfigParser()
 config_path = os.environ.get("DOCUGEN_CONFIG_PATH") or "./config.ini"
@@ -25,7 +27,14 @@ subconfig_names = config["SUBCONFIGS"]["names"].split(",")
 
 subconfigs = util.process_subconfigs(config, subconfig_names)
 
-WANDB_CORE, WANDB_DATATYPES, WANDB_API, WANDB_INTEGRATIONS, WANDB_LAUNCH = subconfigs
+(
+    WANDB_CORE,
+    WANDB_DATATYPES,
+    WANDB_API,
+    WANDB_INTEGRATIONS,
+    WANDB_LAUNCH,
+    WANDB_AUTOMATIONS,
+) = subconfigs
 
 
 def format_readme_titles(readme_file_path: str, markdown_titles: dict):
@@ -80,6 +89,12 @@ def build(commit_id, code_url_prefix, output_dir):
         code_url_prefix,
         modules_output_dir,
     )
+    build_docs_from_config(
+        WANDB_AUTOMATIONS,
+        commit_id,
+        code_url_prefix,
+        modules_output_dir,
+    )
 
 
 def build_docs_from_config(config, commit_id, code_url_prefix, output_dir):
@@ -114,7 +129,7 @@ def build_docs(name_pair, output_dir, code_url_prefix):
     doc_generator.build(output_dir)
 
 
-def handle_additions(add_from, add_elements):
+def handle_additions(add_from: str, add_elements: list[str]) -> None:
     """Adds elements of a submodule of wandb to the top level."""
     if not add_from:
         return
@@ -124,11 +139,12 @@ def handle_additions(add_from, add_elements):
         module = import_module("." + add_from, "wandb")
     except ModuleNotFoundError as e:
         raise (e)
+
     for element in add_elements:
         setattr(wandb, element, getattr(module, element))
 
 
-def get_dunder_doc(module_doc_from):
+def get_dunder_doc(module_doc_from: str):
     """Fetches the __doc__ attribute from a module, or passes a default."""
     if module_doc_from == "":
         return """\n"""
@@ -143,12 +159,17 @@ def configure_doc_hiding():
     """Uses doc_controls to hide certain classes and attributes."""
     deco = doc_controls.do_not_doc_in_subclasses
 
-    # avoid documenting internal methods
-    #  that are defined in basic datatypes and apis
+    # avoid documenting:
+    #  - internal methods that are defined in basic datatypes and apis
+    #  - Base class methods or attributes from:
+    #    - `pydantic.BaseModel`
+    #    - `enum.EnumType`
     base_classes = [
         wandb.data_types.WBValue,
         wandb.data_types.Media,
         wandb.data_types.BatchableMedia,
+        pydantic.BaseModel,
+        enum.EnumType,
     ]
 
     for cls in base_classes:

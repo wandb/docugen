@@ -1,5 +1,9 @@
 """Documentation control decorators."""
-from typing import Iterable, TypeVar
+import sys
+from inspect import getmodule
+from typing import Any, Iterable, TypeVar
+
+import pydantic
 
 T = TypeVar("T")
 
@@ -416,6 +420,19 @@ def _unwrap_func(obj):
     return obj
 
 
+def is_builtin_def(obj: Any) -> bool:
+    """Returns True if the class is defined in a builtin module."""
+    builtin_modules = set(sys.builtin_module_names)
+    if hasattr(sys, "stdlib_module_names"):  # Added in Python 3.10+
+        builtin_modules |= sys.stdlib_module_names
+    return obj.__module__ in builtin_modules
+
+
+def is_pydantic_def(obj: Any) -> bool:
+    """Returns True if the class is defined in the pydantic package."""
+    return bool((module := getmodule(obj)) and (module.__package__ == "pydantic"))
+
+
 def should_skip_class_attr(cls, name):
     """Returns true if docs should be skipped for this class attribute.
 
@@ -426,14 +443,25 @@ def should_skip_class_attr(cls, name):
     Returns:
       True if the attribute should be skipped.
     """
+    # Skip if the attribute is inherited from a builtin type or pydantic.BaseModel
+    for base in cls.__mro__:
+        if (is_builtin_def(base) or is_pydantic_def(base)) and (name in base.__dict__):
+            return True
+
     # Get the object with standard lookup, from the nearest
     # defining parent.
     try:
         obj = getattr(cls, name)
     except AttributeError:
-        # Avoid error caused by enum metaclasses in python3
         if name in ("name", "value"):
+            # Avoid error caused by enum metaclasses in python3
             return True
+        if issubclass(cls, pydantic.BaseModel) and (name in cls.model_fields):
+            # We still want to document Pydantic model fields.
+            # However, note that on class definition, fields in Pydantic models
+            # are removed from the class namespace and are instead accessible
+            # via the `cls.model_fields` lookup.
+            return False
         raise
 
     # Unwrap fget if the object is a property
