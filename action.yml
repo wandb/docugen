@@ -98,7 +98,7 @@ runs:
         git remote set-url origin https://${{ inputs.access-token }}@github.com/wandb/docs.git ; \
         git pull origin main
         git reset --hard origin/main
-        cp -r ${{ github.action_path }}/ref ./content/
+        cp -r ${{ github.action_path }}/ref ./content/en/
         if [[ `git status --porcelain` ]]; then
           git checkout -b sdk-${{ inputs.wandb-branch }} ; \
           git add -A .
