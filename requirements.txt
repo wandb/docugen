@@ -3,8 +3,5 @@
 dataclasses
 mistune
 
-# for integrations
-tensorflow
-
 # for pydantic
 pydantic>=2.0,<3.0
