@@ -31,7 +31,7 @@ subconfigs = util.process_subconfigs(config, subconfig_names)
     WANDB_CORE,
     WANDB_DATATYPES,
     WANDB_API,
-    #WANDB_INTEGRATIONS,
+    WANDB_INTEGRATIONS,
     WANDB_LAUNCH,
     WANDB_AUTOMATIONS,
 ) = subconfigs
@@ -78,7 +78,7 @@ def build(commit_id, code_url_prefix, output_dir):
     )
     build_docs_from_config(WANDB_API, commit_id, code_url_prefix, modules_output_dir)
     build_docs_from_config(
-        #WANDB_INTEGRATIONS,
+        WANDB_INTEGRATIONS,
         commit_id,
         code_url_prefix,
         modules_output_dir,
